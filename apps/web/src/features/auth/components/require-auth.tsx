@@ -1,12 +1,18 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import { supabase } from "@/lib/supabase";
+import { isSupabaseConfigured } from "@/lib/env";
 
 export function RequireAuth({ children }: { children: ReactNode }) {
   const location = useLocation();
-  const [state, setState] = useState<"loading" | "authenticated" | "anonymous">("loading");
+  const [state, setState] = useState<"loading" | "authenticated" | "anonymous">(() =>
+    !isSupabaseConfigured
+      ? localStorage.getItem("cos-demo-session") === "true" ? "authenticated" : "anonymous"
+      : "loading",
+  );
 
   useEffect(() => {
+    if (!isSupabaseConfigured) return;
     let active = true;
     void supabase.auth.getSession().then(({ data }) => {
       if (active) setState(data.session ? "authenticated" : "anonymous");

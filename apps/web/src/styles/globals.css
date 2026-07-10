@@ -7,12 +7,34 @@
   --color-brand-500: #7c3aed;
 }
 
+:root {
+  --canvas: #f6f6f2;
+  --surface: #ffffff;
+  --surface-2: #efefe9;
+  --ink: #191a1d;
+  --muted: #696a70;
+  --line: rgba(24, 24, 27, 0.1);
+  --aurora: #6d4aff;
+  --aurora-2: #ff6b9e;
+}
+
+[data-theme="dark"] {
+  --canvas: #090a0f;
+  --surface: #111219;
+  --surface-2: #171922;
+  --ink: #f7f7f4;
+  --muted: #92939d;
+  --line: rgba(255, 255, 255, 0.09);
+  --aurora: #9478ff;
+  --aurora-2: #ff7eaa;
+}
+
 * {
   border-color: rgba(255, 255, 255, 0.08);
 }
 html {
-  color-scheme: dark;
-  background: #08090c;
+  background: var(--canvas);
+  scroll-behavior: smooth;
 }
 body {
   margin: 0;
@@ -20,6 +42,8 @@ body {
   min-height: 100vh;
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
+  background: var(--canvas);
+  color: var(--ink);
 }
 button,
 input {
@@ -29,6 +53,16 @@ input {
   background: rgba(124, 58, 237, 0.35);
   color: white;
 }
+
+.cos-grid {
+  background-image: linear-gradient(var(--line) 1px, transparent 1px), linear-gradient(90deg, var(--line) 1px, transparent 1px);
+  background-size: 48px 48px;
+  mask-image: linear-gradient(to bottom, black, transparent 85%);
+}
+
+.cos-card { border: 1px solid var(--line); background: color-mix(in srgb, var(--surface) 92%, transparent); }
+.cos-muted { color: var(--muted); }
+.cos-focus:focus-visible { outline: 2px solid var(--aurora); outline-offset: 3px; }
 
 @media (prefers-reduced-motion: reduce) {
   *,

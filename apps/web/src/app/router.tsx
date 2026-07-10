@@ -6,6 +6,9 @@ import { RequireAuth } from "@/features/auth/components/require-auth";
 const DashboardPage = lazy(() =>
   import("@/features/dashboard/pages/dashboard-page").then((module) => ({ default: module.DashboardPage })),
 );
+const LandingPage = lazy(() =>
+  import("@/features/marketing/pages/landing-page").then((module) => ({ default: module.LandingPage })),
+);
 const ForgotPasswordPage = lazy(() =>
   import("@/features/auth/pages/forgot-password-page").then((module) => ({
     default: module.ForgotPasswordPage,
@@ -33,7 +36,7 @@ function LazyRoute({ children }: { children: ReactNode }) {
 }
 
 export const router = createBrowserRouter([
-  { path: "/", element: <Navigate to="/sign-in" replace /> },
+  { path: "/", element: <LazyRoute><LandingPage /></LazyRoute> },
   {
     path: "/sign-in",
     element: (
@@ -69,5 +72,5 @@ export const router = createBrowserRouter([
       </RequireAuth>
     ),
   },
-  { path: "*", element: <Navigate to="/sign-in" replace /> },
+  { path: "*", element: <Navigate to="/" replace /> },
 ]);
