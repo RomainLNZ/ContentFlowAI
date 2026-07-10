@@ -1,5 +1,5 @@
 import { Logo } from "@/components/brand/logo";
-import { Button } from "@/components/ui/button";
+import { Button } from "@communicationos/ui";
 import { supabase } from "@/lib/supabase";
 
 export function DashboardPage() {

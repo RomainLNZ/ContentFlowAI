@@ -3,7 +3,7 @@ import { useMutation } from "@tanstack/react-query";
 import { ArrowLeft, LoaderCircle } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { Link } from "react-router-dom";
-import { Button } from "@/components/ui/button";
+import { Button } from "@communicationos/ui";
 import { requestPasswordReset } from "../api/auth.api";
 import { AuthShell } from "../components/auth-shell";
 import { FormField } from "../components/form-field";
