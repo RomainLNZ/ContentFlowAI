@@ -1,0 +1,41 @@
+{
+  "name": "communicationos-ai",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "npm@10.9.4",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "npm run dev --workspaces --if-present",
+    "dev:web": "npm run dev -w @communicationos/web",
+    "dev:api": "npm run dev -w @communicationos/api",
+    "build": "npm run build -w @communicationos/api && npm run build -w @communicationos/web",
+    "lint": "eslint . --max-warnings=0",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "npm run test --workspaces --if-present",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "check": "npm run lint && npm run format:check && npm run typecheck && npm run test && npm run build",
+    "prisma:generate": "prisma generate",
+    "prisma:migrate": "prisma migrate dev",
+    "prisma:deploy": "prisma migrate deploy",
+    "prisma:studio": "prisma studio"
+  },
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "devDependencies": {
+    "@prisma/client": "6.19.3",
+    "@eslint/js": "10.0.1",
+    "eslint": "10.6.0",
+    "eslint-config-prettier": "10.1.8",
+    "globals": "17.7.0",
+    "prettier": "3.9.5",
+    "prisma": "6.19.3",
+    "typescript": "6.0.3",
+    "typescript-eslint": "8.63.0"
+  }
+}
