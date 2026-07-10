@@ -3,23 +3,22 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
   directUrl = env("DIRECT_URL")
-}
-
-enum OrganizationRole {
-  SUPER_ADMIN
-  ADMIN
-  MANAGER
-  WRITER
-  READER
 }
 
 enum MembershipStatus {
   INVITED
   ACTIVE
   SUSPENDED
+}
+
+enum RoleScope {
+  PLATFORM
+  ORGANIZATION
+  WORKSPACE
+  TEAM
 }
 
 enum SubscriptionStatus {
@@ -31,59 +30,166 @@ enum SubscriptionStatus {
   UNPAID
 }
 
+enum OutboxEventStatus {
+  PENDING
+  PROCESSING
+  PUBLISHED
+  FAILED
+}
+
 model User {
-  id               String   @id @default(uuid()) @db.Uuid
-  supabaseAuthId   String   @unique @map("supabase_auth_id") @db.Uuid
-  email            String   @unique
-  fullName         String   @default("") @map("full_name")
-  avatarPath       String?  @map("avatar_path")
-  locale           String   @default("fr-FR")
-  timezone         String   @default("Europe/Paris")
-  onboardingDone   Boolean  @default(false) @map("onboarding_done")
-  createdAt        DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
-  updatedAt        DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+  id             String   @id @default(uuid()) @db.Uuid
+  supabaseAuthId String   @unique @map("supabase_auth_id") @db.Uuid
+  email          String   @unique
+  fullName       String   @default("") @map("full_name")
+  avatarPath     String?  @map("avatar_path")
+  locale         String   @default("fr-FR")
+  timezone       String   @default("Europe/Paris")
+  onboardingDone Boolean  @default(false) @map("onboarding_done")
+  platformRoleId String?  @map("platform_role_id") @db.Uuid
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt      DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
 
-  memberships      Membership[]
-  createdOrganizations Organization[] @relation("OrganizationCreator")
-  sentInvitations  Invitation[] @relation("InvitationSender")
-  auditLogs        AuditLog[]
+  platformRole          Role?                    @relation("PlatformRole", fields: [platformRoleId], references: [id], onDelete: SetNull)
+  organizationMemberships OrganizationMembership[]
+  workspaceMemberships  WorkspaceMembership[]
+  teamMemberships       TeamMembership[]
+  createdOrganizations  Organization[]           @relation("OrganizationCreator")
+  sentInvitations       Invitation[]             @relation("InvitationSender")
+  auditLogs             AuditLog[]
 
+  @@index([platformRoleId])
   @@map("users")
 }
 
 model Organization {
-  id                  String   @id @default(uuid()) @db.Uuid
+  id                  String    @id @default(uuid()) @db.Uuid
   name                String
-  slug                String   @unique
-  logoPath            String?  @map("logo_path")
-  websiteUrl          String?  @map("website_url")
+  slug                String    @unique
+  logoPath            String?   @map("logo_path")
+  websiteUrl          String?   @map("website_url")
   industry            String?
   description         String?
   mission             String?
-  values              String[] @default([])
-  brandColors         Json     @default("{}") @map("brand_colors")
-  communicationTone   String?  @map("communication_tone")
-  forbiddenWords      String[] @default([]) @map("forbidden_words")
-  favoriteExpressions String[] @default([]) @map("favorite_expressions")
-  createdById         String   @map("created_by_id") @db.Uuid
-  createdAt           DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
-  updatedAt           DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+  values              String[]  @default([])
+  brandColors         Json      @default("{}") @map("brand_colors")
+  communicationTone   String?   @map("communication_tone")
+  forbiddenWords      String[]  @default([]) @map("forbidden_words")
+  favoriteExpressions String[]  @default([]) @map("favorite_expressions")
+  createdById         String    @map("created_by_id") @db.Uuid
+  createdAt           DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt           DateTime  @updatedAt @map("updated_at") @db.Timestamptz(3)
   archivedAt          DateTime? @map("archived_at") @db.Timestamptz(3)
 
-  createdBy      User @relation("OrganizationCreator", fields: [createdById], references: [id], onDelete: Restrict)
-  memberships   Membership[]
-  invitations   Invitation[]
-  auditLogs      AuditLog[]
-  billingAccount BillingAccount?
+  createdBy            User                         @relation("OrganizationCreator", fields: [createdById], references: [id], onDelete: Restrict)
+  workspaces           Workspace[]
+  memberships          OrganizationMembership[]
+  customRoles          Role[]                       @relation("OrganizationRoles")
+  invitations          Invitation[]
+  auditLogs            AuditLog[]
+  billingAccount       BillingAccount?
+  featureFlagOverrides OrganizationFeatureOverride[]
+  outboxEvents         OutboxEvent[]
 
   @@index([createdById])
   @@map("organizations")
 }
 
-model Membership {
+model Workspace {
+  id             String    @id @default(uuid()) @db.Uuid
+  organizationId String    @map("organization_id") @db.Uuid
+  name           String
+  slug           String
+  description    String?
+  isDefault      Boolean   @default(false) @map("is_default")
+  createdAt      DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt      DateTime  @updatedAt @map("updated_at") @db.Timestamptz(3)
+  archivedAt     DateTime? @map("archived_at") @db.Timestamptz(3)
+
+  organization Organization          @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  teams        Team[]
+  memberships  WorkspaceMembership[]
+  invitations  Invitation[]
+
+  @@unique([organizationId, slug])
+  @@index([organizationId, archivedAt])
+  @@map("workspaces")
+}
+
+model Team {
+  id          String    @id @default(uuid()) @db.Uuid
+  workspaceId String    @map("workspace_id") @db.Uuid
+  name        String
+  slug        String
+  description String?
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt   DateTime  @updatedAt @map("updated_at") @db.Timestamptz(3)
+  archivedAt  DateTime? @map("archived_at") @db.Timestamptz(3)
+
+  workspace   Workspace        @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  memberships TeamMembership[]
+  invitations Invitation[]
+
+  @@unique([workspaceId, slug])
+  @@index([workspaceId, archivedAt])
+  @@map("teams")
+}
+
+model Role {
+  id             String    @id @default(uuid()) @db.Uuid
+  organizationId String?   @map("organization_id") @db.Uuid
+  systemKey      String?   @unique @map("system_key")
+  key            String
+  name           String
+  description    String?
+  scope          RoleScope
+  isSystem       Boolean   @default(false) @map("is_system")
+  createdAt      DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt      DateTime  @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  organization           Organization?            @relation("OrganizationRoles", fields: [organizationId], references: [id], onDelete: Cascade)
+  permissions            RolePermission[]
+  platformUsers          User[]                    @relation("PlatformRole")
+  organizationMemberships OrganizationMembership[]
+  workspaceMemberships   WorkspaceMembership[]
+  teamMemberships        TeamMembership[]
+  invitations            Invitation[]
+
+  @@unique([organizationId, key, scope])
+  @@index([key, scope, isSystem])
+  @@map("roles")
+}
+
+model Permission {
+  id          String   @id @default(uuid()) @db.Uuid
+  key         String   @unique
+  name        String
+  description String?
+  resource    String
+  action      String
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  roles RolePermission[]
+
+  @@index([resource, action])
+  @@map("permissions")
+}
+
+model RolePermission {
+  roleId       String @map("role_id") @db.Uuid
+  permissionId String @map("permission_id") @db.Uuid
+
+  role       Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@id([roleId, permissionId])
+  @@map("role_permissions")
+}
+
+model OrganizationMembership {
   organizationId String           @map("organization_id") @db.Uuid
   userId         String           @map("user_id") @db.Uuid
-  role           OrganizationRole @default(READER)
+  roleId         String           @map("role_id") @db.Uuid
   status         MembershipStatus @default(ACTIVE)
   joinedAt       DateTime?        @map("joined_at") @db.Timestamptz(3)
   createdAt      DateTime         @default(now()) @map("created_at") @db.Timestamptz(3)
@@ -91,46 +197,175 @@ model Membership {
 
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role         Role         @relation(fields: [roleId], references: [id], onDelete: Restrict)
 
   @@id([organizationId, userId])
   @@index([userId, status])
-  @@index([organizationId, role, status])
-  @@map("memberships")
+  @@index([organizationId, roleId, status])
+  @@map("organization_memberships")
+}
+
+model WorkspaceMembership {
+  workspaceId String           @map("workspace_id") @db.Uuid
+  userId      String           @map("user_id") @db.Uuid
+  roleId      String           @map("role_id") @db.Uuid
+  status      MembershipStatus @default(ACTIVE)
+  createdAt   DateTime         @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt   DateTime         @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role      Role      @relation(fields: [roleId], references: [id], onDelete: Restrict)
+
+  @@id([workspaceId, userId])
+  @@index([userId, status])
+  @@index([workspaceId, roleId, status])
+  @@map("workspace_memberships")
+}
+
+model TeamMembership {
+  teamId    String           @map("team_id") @db.Uuid
+  userId    String           @map("user_id") @db.Uuid
+  roleId    String           @map("role_id") @db.Uuid
+  status    MembershipStatus @default(ACTIVE)
+  createdAt DateTime         @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt DateTime         @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  team Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role Role @relation(fields: [roleId], references: [id], onDelete: Restrict)
+
+  @@id([teamId, userId])
+  @@index([userId, status])
+  @@index([teamId, roleId, status])
+  @@map("team_memberships")
 }
 
 model Invitation {
-  id             String           @id @default(uuid()) @db.Uuid
-  organizationId String           @map("organization_id") @db.Uuid
+  id             String    @id @default(uuid()) @db.Uuid
+  organizationId String    @map("organization_id") @db.Uuid
+  workspaceId    String?   @map("workspace_id") @db.Uuid
+  teamId         String?   @map("team_id") @db.Uuid
+  roleId         String    @map("role_id") @db.Uuid
   email          String
-  role           OrganizationRole @default(READER)
-  tokenHash      String           @unique @map("token_hash")
-  invitedById    String           @map("invited_by_id") @db.Uuid
-  expiresAt      DateTime         @map("expires_at") @db.Timestamptz(3)
-  acceptedAt     DateTime?        @map("accepted_at") @db.Timestamptz(3)
-  createdAt      DateTime         @default(now()) @map("created_at") @db.Timestamptz(3)
+  tokenHash      String    @unique @map("token_hash")
+  invitedById    String    @map("invited_by_id") @db.Uuid
+  expiresAt      DateTime  @map("expires_at") @db.Timestamptz(3)
+  acceptedAt     DateTime? @map("accepted_at") @db.Timestamptz(3)
+  createdAt      DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
 
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  invitedBy     User         @relation("InvitationSender", fields: [invitedById], references: [id], onDelete: Restrict)
+  workspace    Workspace?   @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  team         Team?        @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  role         Role         @relation(fields: [roleId], references: [id], onDelete: Restrict)
+  invitedBy    User         @relation("InvitationSender", fields: [invitedById], references: [id], onDelete: Restrict)
 
   @@unique([organizationId, email])
   @@index([email, expiresAt])
+  @@index([workspaceId])
+  @@index([teamId])
   @@map("invitations")
 }
 
-model BillingAccount {
-  id               String             @id @default(uuid()) @db.Uuid
-  organizationId   String             @unique @map("organization_id") @db.Uuid
-  stripeCustomerId String?            @unique @map("stripe_customer_id")
-  stripeSubscriptionId String?        @unique @map("stripe_subscription_id")
-  status           SubscriptionStatus @default(INCOMPLETE)
-  planKey          String?            @map("plan_key")
-  currentPeriodEnd DateTime?          @map("current_period_end") @db.Timestamptz(3)
-  createdAt        DateTime           @default(now()) @map("created_at") @db.Timestamptz(3)
-  updatedAt        DateTime           @updatedAt @map("updated_at") @db.Timestamptz(3)
+model Plan {
+  id          String   @id @default(uuid()) @db.Uuid
+  key         String   @unique
+  name        String
+  description String?
+  isActive    Boolean  @default(true) @map("is_active")
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  features        PlanFeature[]
+  billingAccounts BillingAccount[]
+
+  @@map("plans")
+}
+
+model FeatureFlag {
+  id          String   @id @default(uuid()) @db.Uuid
+  key         String   @unique
+  name        String
+  description String?
+  defaultEnabled Boolean @default(false) @map("default_enabled")
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  plans                 PlanFeature[]
+  organizationOverrides OrganizationFeatureOverride[]
+
+  @@map("feature_flags")
+}
+
+model PlanFeature {
+  planId        String @map("plan_id") @db.Uuid
+  featureFlagId String @map("feature_flag_id") @db.Uuid
+  enabled       Boolean @default(true)
+  configuration Json?
+
+  plan        Plan        @relation(fields: [planId], references: [id], onDelete: Cascade)
+  featureFlag FeatureFlag @relation(fields: [featureFlagId], references: [id], onDelete: Cascade)
+
+  @@id([planId, featureFlagId])
+  @@map("plan_features")
+}
+
+model OrganizationFeatureOverride {
+  organizationId String @map("organization_id") @db.Uuid
+  featureFlagId  String @map("feature_flag_id") @db.Uuid
+  enabled        Boolean
+  configuration  Json?
+  expiresAt      DateTime? @map("expires_at") @db.Timestamptz(3)
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt      DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
 
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  featureFlag  FeatureFlag  @relation(fields: [featureFlagId], references: [id], onDelete: Cascade)
 
+  @@id([organizationId, featureFlagId])
+  @@index([expiresAt])
+  @@map("organization_feature_overrides")
+}
+
+model BillingAccount {
+  id                   String             @id @default(uuid()) @db.Uuid
+  organizationId       String             @unique @map("organization_id") @db.Uuid
+  planId               String?            @map("plan_id") @db.Uuid
+  stripeCustomerId     String?            @unique @map("stripe_customer_id")
+  stripeSubscriptionId String?            @unique @map("stripe_subscription_id")
+  status               SubscriptionStatus @default(INCOMPLETE)
+  currentPeriodEnd     DateTime?          @map("current_period_end") @db.Timestamptz(3)
+  createdAt            DateTime           @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt            DateTime           @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  plan         Plan?        @relation(fields: [planId], references: [id], onDelete: SetNull)
+
+  @@index([planId])
   @@map("billing_accounts")
+}
+
+model OutboxEvent {
+  id             String            @id @default(uuid()) @db.Uuid
+  organizationId String?           @map("organization_id") @db.Uuid
+  type           String
+  aggregateType  String            @map("aggregate_type")
+  aggregateId    String            @map("aggregate_id")
+  payload        Json
+  metadata       Json              @default("{}")
+  status         OutboxEventStatus @default(PENDING)
+  attempts       Int               @default(0)
+  availableAt    DateTime          @default(now()) @map("available_at") @db.Timestamptz(3)
+  publishedAt    DateTime?         @map("published_at") @db.Timestamptz(3)
+  lastError      String?           @map("last_error")
+  createdAt      DateTime          @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  organization Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([status, availableAt])
+  @@index([organizationId, createdAt(sort: Desc)])
+  @@index([aggregateType, aggregateId])
+  @@map("outbox_events")
 }
 
 model AuditLog {

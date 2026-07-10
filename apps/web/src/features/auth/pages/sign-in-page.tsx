@@ -3,7 +3,7 @@ import { useMutation } from "@tanstack/react-query";
 import { ArrowRight, LoaderCircle } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { Link, useNavigate } from "react-router-dom";
-import { Button } from "@/components/ui/button";
+import { Button } from "@communicationos/ui";
 import { isSupabaseConfigured } from "@/lib/env";
 import { signIn } from "../api/auth.api";
 import { AuthShell } from "../components/auth-shell";

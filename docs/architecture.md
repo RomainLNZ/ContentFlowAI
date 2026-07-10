@@ -38,6 +38,38 @@ Deux artefacts sont déployés : le build statique de `apps/web/dist` et l'appli
 - `packages/types` : contrats sans dépendance runtime métier.
 - `packages/utils` : fonctions pures génériques.
 - `packages/ai` : ports et adaptateurs IA, sans Express ni Prisma.
+- `packages/events` : contrats d’événements et Event Bus indépendant du transport.
 - `packages/config` : validation centralisée de l'environnement serveur.
 
 Une feature métier reste dans son application tant qu'elle n'a pas deux consommateurs réels. Cette règle évite les abstractions prématurées.
+
+Le détail du noyau IA, de son pipeline et de ses extensions est documenté dans [`docs/ai-core.md`](./ai-core.md).
+
+## Hiérarchie multi-tenant
+
+```text
+Organization
+└── Workspace
+    └── Team
+        └── Users via memberships
+```
+
+Un utilisateur peut appartenir à plusieurs organisations, workspaces et équipes. Chaque niveau possède une table d’adhésion propre afin d’éviter des colonnes polymorphes fragiles. Les workspaces isolent les marques, filiales ou unités éditoriales ; les teams organisent les collaborateurs.
+
+## Autorisation dynamique
+
+Les rôles et permissions sont des données, pas des enums applicatifs. `AccessControlService` agrège les permissions de plateforme, organisation, workspace et équipe. Ajouter une permission ou un rôle personnalisé ne nécessite pas de modifier ce service.
+
+Le seed idempotent installe `SUPER_ADMIN`, `OWNER`, `ADMIN`, `MANAGER`, `EDITOR`, `AUTHOR` et `VIEWER`. Les rôles système ne peuvent pas être renommés par le produit ; des rôles personnalisés peuvent être rattachés à une organisation.
+
+## Événements et automatisations
+
+`@communicationos/events` expose un Event Bus et une implémentation mémoire. Les producteurs publient des événements métier sans connaître les consommateurs. La table `outbox_events` permet une publication fiable après transaction ; un worker PostgreSQL sera ajouté lorsqu’un premier traitement asynchrone le justifiera.
+
+Les événements portent systématiquement un `correlationId`, un agrégat et, si disponible, l’organisation et l’acteur. Ils sont versionnés par leur nom lors des futures ruptures de payload.
+
+## Feature Flags
+
+Les flags sont stockés en base. La décision suit cet ordre : dérogation temporaire d’organisation, droit du plan commercial, valeur par défaut. La configuration JSON permet d’associer quotas ou paramètres à un flag sans nouveau schéma.
+
+Les flags sécurisent l’accès côté API ; leur usage dans React sert uniquement à adapter l’interface.

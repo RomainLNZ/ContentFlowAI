@@ -15,6 +15,7 @@ Socle du SaaS B2B multi-tenant construit avec React/Vite, Express, Prisma et Pos
 npm install
 npm run prisma:generate
 npm run prisma:migrate -- --name initial
+npm run prisma:seed
 ```
 
 Copiez `.env.example` vers `.env`, puis renseignez les URLs PostgreSQL et les clés du projet Supabase distant.
@@ -43,6 +44,7 @@ La commande `npm run check` exécute toute la chaîne.
 - `packages` : contrats et briques transverses
 - `prisma` : schéma et migrations PostgreSQL
 - `docs/architecture.md` : décisions et règles d'évolution
+- `docs/design-system.md` : tokens et composants partagés
 
 ## Sécurité
 

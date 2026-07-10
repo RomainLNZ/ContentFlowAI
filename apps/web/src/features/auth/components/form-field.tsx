@@ -1,5 +1,5 @@
 import type { InputHTMLAttributes } from "react";
-import { Input } from "@/components/ui/input";
+import { Input } from "@communicationos/ui";
 
 type Props = InputHTMLAttributes<HTMLInputElement> & { label: string; error?: string };
 

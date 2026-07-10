@@ -15,7 +15,7 @@ export function AuthShell({ children }: { children: ReactNode }) {
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_0%,rgba(124,58,237,.16),transparent_35%),radial-gradient(circle_at_90%_80%,rgba(37,99,235,.1),transparent_30%)]" />
       <div className="relative mx-auto grid min-h-screen max-w-7xl lg:grid-cols-[1.05fr_.95fr]">
         <section className="hidden flex-col justify-between border-r border-white/[.06] p-12 lg:flex xl:p-16">
-          <Logo />
+          <Logo inverse />
           <motion.div
             initial={{ opacity: 0, y: 18 }}
             animate={{ opacity: 1, y: 0 }}
@@ -44,7 +44,7 @@ export function AuthShell({ children }: { children: ReactNode }) {
         </section>
         <section className="flex min-h-screen items-center justify-center px-5 py-12 sm:px-10">
           <div className="absolute left-5 top-6 lg:hidden">
-            <Logo />
+            <Logo inverse />
           </div>
           <motion.div
             initial={{ opacity: 0, scale: 0.985 }}

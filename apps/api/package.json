@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@communicationos/config": "*",
+    "@communicationos/events": "*",
     "@communicationos/types": "*",
     "@prisma/client": "6.19.3",
     "cors": "2.8.6",
