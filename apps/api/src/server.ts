@@ -1,12 +1,12 @@
 import dotenv from "dotenv";
-import { parseServerEnv } from "@communicationos/config";
+import { parseServerEnv } from "@flowpilot/config";
 import { createApp } from "./app.js";
 
 dotenv.config({ path: new URL("../../../.env", import.meta.url) });
 const env = parseServerEnv(process.env);
 const app = createApp(env);
 const server = app.listen(env.PORT, () => {
-  console.info(`CommunicationOS API listening on http://localhost:${env.PORT}`);
+  console.info(`FlowPilot API listening on http://localhost:${env.PORT}`);
 });
 
 const shutdown = (signal: string) => {

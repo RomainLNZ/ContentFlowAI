@@ -11,7 +11,9 @@ function systemTheme() {
 }
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const [theme, setThemeState] = useState<Theme>(() => (localStorage.getItem("cos-theme") as Theme | null) ?? "system");
+  const [theme, setThemeState] = useState<Theme>(
+    () => (localStorage.getItem("fp-theme") as Theme | null) ?? "system",
+  );
   const [system, setSystem] = useState<"light" | "dark">(() => systemTheme());
   const resolvedTheme = theme === "system" ? system : theme;
 
@@ -27,10 +29,17 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     document.documentElement.style.colorScheme = resolvedTheme;
   }, [resolvedTheme]);
 
-  const value = useMemo(() => ({ theme, resolvedTheme, setTheme: (next: Theme) => {
-    localStorage.setItem("cos-theme", next);
-    setThemeState(next);
-  } }), [theme, resolvedTheme]);
+  const value = useMemo(
+    () => ({
+      theme,
+      resolvedTheme,
+      setTheme: (next: Theme) => {
+        localStorage.setItem("fp-theme", next);
+        setThemeState(next);
+      },
+    }),
+    [theme, resolvedTheme],
+  );
 
   return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
 }

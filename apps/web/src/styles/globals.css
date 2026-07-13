@@ -1,5 +1,5 @@
 @import "tailwindcss";
-@import "@communicationos/ui/styles.css";
+@import "@flowpilot/ui/styles.css";
 @source "../../../../packages/ui/src";
 
 @theme {
@@ -54,15 +54,25 @@ input {
   color: white;
 }
 
-.cos-grid {
-  background-image: linear-gradient(var(--line) 1px, transparent 1px), linear-gradient(90deg, var(--line) 1px, transparent 1px);
+.fp-grid {
+  background-image:
+    linear-gradient(var(--line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--line) 1px, transparent 1px);
   background-size: 48px 48px;
   mask-image: linear-gradient(to bottom, black, transparent 85%);
 }
 
-.cos-card { border: 1px solid var(--line); background: color-mix(in srgb, var(--surface) 92%, transparent); }
-.cos-muted { color: var(--muted); }
-.cos-focus:focus-visible { outline: 2px solid var(--aurora); outline-offset: 3px; }
+.fp-card {
+  border: 1px solid var(--line);
+  background: color-mix(in srgb, var(--surface) 92%, transparent);
+}
+.fp-muted {
+  color: var(--muted);
+}
+.fp-focus:focus-visible {
+  outline: 2px solid var(--aurora);
+  outline-offset: 3px;
+}
 
 @media (prefers-reduced-motion: reduce) {
   *,

@@ -40,7 +40,7 @@ export function AuthShell({ children }: { children: ReactNode }) {
               ))}
             </ul>
           </motion.div>
-          <p className="text-xs text-zinc-600">© 2026 CommunicationOS AI</p>
+          <p className="text-xs text-zinc-600">© 2026 FlowPilot</p>
         </section>
         <section className="flex min-h-screen items-center justify-center px-5 py-12 sm:px-10">
           <div className="absolute left-5 top-6 lg:hidden">

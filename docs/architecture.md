@@ -28,6 +28,8 @@ Supabase reste propriétaire de son schéma interne `auth`. Prisma ne l'introspe
 - Les migrations sont produites localement par Prisma et appliquées à la base distante sans Docker.
 - Les secrets ne portent jamais le préfixe `VITE_`.
 
+L'état du schéma et la procédure opérationnelle sont détaillés dans [`docs/database-migrations.md`](./database-migrations.md).
+
 ## Déploiement O2Switch
 
 Deux artefacts sont déployés : le build statique de `apps/web/dist` et l'application Node `apps/api/dist/server.js`. Le reverse proxy expose l'API sous `/api`. Les variables d'environnement sont configurées dans le panneau Node.js O2Switch, jamais commitées.
@@ -64,7 +66,7 @@ Le seed idempotent installe `SUPER_ADMIN`, `OWNER`, `ADMIN`, `MANAGER`, `EDITOR`
 
 ## Événements et automatisations
 
-`@communicationos/events` expose un Event Bus et une implémentation mémoire. Les producteurs publient des événements métier sans connaître les consommateurs. La table `outbox_events` permet une publication fiable après transaction ; un worker PostgreSQL sera ajouté lorsqu’un premier traitement asynchrone le justifiera.
+`@flowpilot/events` expose un Event Bus et une implémentation mémoire. Les producteurs publient des événements métier sans connaître les consommateurs. La table `outbox_events` permet une publication fiable après transaction ; un worker PostgreSQL sera ajouté lorsqu’un premier traitement asynchrone le justifiera.
 
 Les événements portent systématiquement un `correlationId`, un agrégat et, si disponible, l’organisation et l’acteur. Ils sont versionnés par leur nom lors des futures ruptures de payload.
 

@@ -50,13 +50,13 @@ model User {
   createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt      DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
 
-  platformRole          Role?                    @relation("PlatformRole", fields: [platformRoleId], references: [id], onDelete: SetNull)
+  platformRole            Role?                    @relation("PlatformRole", fields: [platformRoleId], references: [id], onDelete: SetNull)
   organizationMemberships OrganizationMembership[]
-  workspaceMemberships  WorkspaceMembership[]
-  teamMemberships       TeamMembership[]
-  createdOrganizations  Organization[]           @relation("OrganizationCreator")
-  sentInvitations       Invitation[]             @relation("InvitationSender")
-  auditLogs             AuditLog[]
+  workspaceMemberships    WorkspaceMembership[]
+  teamMemberships         TeamMembership[]
+  createdOrganizations    Organization[]           @relation("OrganizationCreator")
+  sentInvitations         Invitation[]             @relation("InvitationSender")
+  auditLogs               AuditLog[]
 
   @@index([platformRoleId])
   @@map("users")
@@ -81,10 +81,10 @@ model Organization {
   updatedAt           DateTime  @updatedAt @map("updated_at") @db.Timestamptz(3)
   archivedAt          DateTime? @map("archived_at") @db.Timestamptz(3)
 
-  createdBy            User                         @relation("OrganizationCreator", fields: [createdById], references: [id], onDelete: Restrict)
+  createdBy            User                          @relation("OrganizationCreator", fields: [createdById], references: [id], onDelete: Restrict)
   workspaces           Workspace[]
   memberships          OrganizationMembership[]
-  customRoles          Role[]                       @relation("OrganizationRoles")
+  customRoles          Role[]                        @relation("OrganizationRoles")
   invitations          Invitation[]
   auditLogs            AuditLog[]
   billingAccount       BillingAccount?
@@ -147,13 +147,13 @@ model Role {
   createdAt      DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt      DateTime  @updatedAt @map("updated_at") @db.Timestamptz(3)
 
-  organization           Organization?            @relation("OrganizationRoles", fields: [organizationId], references: [id], onDelete: Cascade)
-  permissions            RolePermission[]
-  platformUsers          User[]                    @relation("PlatformRole")
+  organization            Organization?            @relation("OrganizationRoles", fields: [organizationId], references: [id], onDelete: Cascade)
+  permissions             RolePermission[]
+  platformUsers           User[]                   @relation("PlatformRole")
   organizationMemberships OrganizationMembership[]
-  workspaceMemberships   WorkspaceMembership[]
-  teamMemberships        TeamMembership[]
-  invitations            Invitation[]
+  workspaceMemberships    WorkspaceMembership[]
+  teamMemberships         TeamMembership[]
+  invitations             Invitation[]
 
   @@unique([organizationId, key, scope])
   @@index([key, scope, isSystem])
@@ -283,13 +283,13 @@ model Plan {
 }
 
 model FeatureFlag {
-  id          String   @id @default(uuid()) @db.Uuid
-  key         String   @unique
-  name        String
-  description String?
-  defaultEnabled Boolean @default(false) @map("default_enabled")
-  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
-  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+  id             String   @id @default(uuid()) @db.Uuid
+  key            String   @unique
+  name           String
+  description    String?
+  defaultEnabled Boolean  @default(false) @map("default_enabled")
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt      DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
 
   plans                 PlanFeature[]
   organizationOverrides OrganizationFeatureOverride[]
@@ -298,8 +298,8 @@ model FeatureFlag {
 }
 
 model PlanFeature {
-  planId        String @map("plan_id") @db.Uuid
-  featureFlagId String @map("feature_flag_id") @db.Uuid
+  planId        String  @map("plan_id") @db.Uuid
+  featureFlagId String  @map("feature_flag_id") @db.Uuid
   enabled       Boolean @default(true)
   configuration Json?
 
@@ -311,13 +311,13 @@ model PlanFeature {
 }
 
 model OrganizationFeatureOverride {
-  organizationId String @map("organization_id") @db.Uuid
-  featureFlagId  String @map("feature_flag_id") @db.Uuid
+  organizationId String    @map("organization_id") @db.Uuid
+  featureFlagId  String    @map("feature_flag_id") @db.Uuid
   enabled        Boolean
   configuration  Json?
   expiresAt      DateTime? @map("expires_at") @db.Timestamptz(3)
-  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
-  updatedAt      DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+  createdAt      DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt      DateTime  @updatedAt @map("updated_at") @db.Timestamptz(3)
 
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   featureFlag  FeatureFlag  @relation(fields: [featureFlagId], references: [id], onDelete: Cascade)

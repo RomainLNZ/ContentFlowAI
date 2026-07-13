@@ -1,6 +1,6 @@
 import request from "supertest";
 import { describe, expect, it } from "vitest";
-import type { ServerEnv } from "@communicationos/config";
+import type { ServerEnv } from "@flowpilot/config";
 import { createApp } from "./app.js";
 
 const testEnv: ServerEnv = {
@@ -19,7 +19,7 @@ describe("API", () => {
     const response = await request(createApp(testEnv)).get("/api/health").expect(200);
     expect(response.body.data).toMatchObject({
       status: "ok",
-      service: "communicationos-api",
+      service: "flowpilot-api",
       version: "test",
     });
   });

@@ -36,7 +36,14 @@ function LazyRoute({ children }: { children: ReactNode }) {
 }
 
 export const router = createBrowserRouter([
-  { path: "/", element: <LazyRoute><LandingPage /></LazyRoute> },
+  {
+    path: "/",
+    element: (
+      <LazyRoute>
+        <LandingPage />
+      </LazyRoute>
+    ),
+  },
   {
     path: "/sign-in",
     element: (

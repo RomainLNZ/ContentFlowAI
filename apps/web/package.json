@@ -1,5 +1,5 @@
 {
-  "name": "@communicationos/web",
+  "name": "@flowpilot/web",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -12,8 +12,8 @@
     "typecheck": "tsc -b --pretty false"
   },
   "dependencies": {
-    "@communicationos/types": "*",
-    "@communicationos/ui": "*",
+    "@flowpilot/types": "*",
+    "@flowpilot/ui": "*",
     "@hookform/resolvers": "5.4.0",
     "@supabase/supabase-js": "2.110.2",
     "@tanstack/react-query": "5.101.2",

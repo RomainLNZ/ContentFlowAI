@@ -1,5 +1,5 @@
 {
-  "name": "@communicationos/api",
+  "name": "@flowpilot/api",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -11,9 +11,9 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@communicationos/config": "*",
-    "@communicationos/events": "*",
-    "@communicationos/types": "*",
+    "@flowpilot/config": "*",
+    "@flowpilot/events": "*",
+    "@flowpilot/types": "*",
     "@prisma/client": "6.19.3",
     "cors": "2.8.6",
     "dotenv": "16.6.1",

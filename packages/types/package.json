@@ -1,5 +1,5 @@
 {
-  "name": "@communicationos/types",
+  "name": "@flowpilot/types",
   "version": "0.1.0",
   "private": true,
   "type": "module",

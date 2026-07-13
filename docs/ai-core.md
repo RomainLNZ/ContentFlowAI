@@ -85,7 +85,7 @@ packages/ai/
 - `AiTool`, `AiWorkflow` et `Agent` : extensions métier futures.
 - `AiOrchestrator` : façade du pipeline complet.
 
-Toutes sont exportées par `@communicationos/ai`.
+Toutes sont exportées par `@flowpilot/ai`.
 
 ## Providers
 

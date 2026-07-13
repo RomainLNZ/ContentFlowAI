@@ -1,6 +1,6 @@
-# CommunicationOS AI
+# FlowPilot
 
-> L'intelligence artificielle qui pilote votre communication.
+> Your AI Communication Team.
 
 Socle du SaaS B2B multi-tenant construit avec React/Vite, Express, Prisma et PostgreSQL Supabase.
 
@@ -30,6 +30,7 @@ Le frontend est accessible sur `http://localhost:5173` et l'API sur `http://loca
 
 ```bash
 npm run lint
+npm run format:check
 npm run typecheck
 npm run test
 npm run build
@@ -44,6 +45,7 @@ La commande `npm run check` exécute toute la chaîne.
 - `packages` : contrats et briques transverses
 - `prisma` : schéma et migrations PostgreSQL
 - `docs/architecture.md` : décisions et règles d'évolution
+- `docs/database-migrations.md` : état et procédure des migrations Prisma
 - `docs/design-system.md` : tokens et composants partagés
 
 ## Sécurité

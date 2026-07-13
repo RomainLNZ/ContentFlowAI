@@ -3,7 +3,7 @@ import { useMutation } from "@tanstack/react-query";
 import { ArrowRight, LoaderCircle } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { Link } from "react-router-dom";
-import { Button } from "@communicationos/ui";
+import { Button } from "@flowpilot/ui";
 import { signUp } from "../api/auth.api";
 import { AuthShell } from "../components/auth-shell";
 import { FormField } from "../components/form-field";
@@ -38,9 +38,7 @@ export function SignUpPage() {
       <div className="rounded-3xl border border-white/[.08] bg-white/[.025] p-6 backdrop-blur-xl sm:p-9">
         <header>
           <h2 className="text-2xl font-semibold tracking-tight">Créez votre espace</h2>
-          <p className="mt-2 text-sm text-zinc-500">
-            Quelques informations pour préparer votre CommunicationOS.
-          </p>
+          <p className="mt-2 text-sm text-zinc-500">Quelques informations pour préparer votre FlowPilot.</p>
         </header>
         <form
           className="mt-7 grid gap-4"

@@ -1,5 +1,5 @@
 {
-  "name": "communicationos-ai",
+  "name": "flowpilot",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -10,9 +10,9 @@
   ],
   "scripts": {
     "dev": "npm run dev --workspaces --if-present",
-    "dev:web": "npm run dev -w @communicationos/web",
-    "dev:api": "npm run dev -w @communicationos/api",
-    "build": "npm run build -w @communicationos/api && npm run build -w @communicationos/web",
+    "dev:web": "npm run dev -w @flowpilot/web",
+    "dev:api": "npm run dev -w @flowpilot/api",
+    "build": "npm run build -w @flowpilot/api && npm run build -w @flowpilot/web",
     "lint": "eslint . --max-warnings=0",
     "format": "prettier --write .",
     "format:check": "prettier --check .",

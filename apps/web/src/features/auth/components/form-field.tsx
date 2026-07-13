@@ -1,5 +1,5 @@
 import type { InputHTMLAttributes } from "react";
-import { Input } from "@communicationos/ui";
+import { Input } from "@flowpilot/ui";
 
 type Props = InputHTMLAttributes<HTMLInputElement> & { label: string; error?: string };
 

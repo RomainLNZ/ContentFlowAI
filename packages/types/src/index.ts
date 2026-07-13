@@ -3,7 +3,7 @@ export type ApiError = { error: { code: string; message: string; details?: unkno
 
 export type HealthStatus = {
   status: "ok";
-  service: "communicationos-api";
+  service: "flowpilot-api";
   version: string;
   timestamp: string;
 };

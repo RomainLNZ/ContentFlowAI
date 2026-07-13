@@ -3,7 +3,7 @@ import { useMutation } from "@tanstack/react-query";
 import { ArrowRight, LoaderCircle } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { Link, useNavigate } from "react-router-dom";
-import { Button } from "@communicationos/ui";
+import { Button } from "@flowpilot/ui";
 import { isSupabaseConfigured } from "@/lib/env";
 import { signIn } from "../api/auth.api";
 import { AuthShell } from "../components/auth-shell";
@@ -82,7 +82,7 @@ export function SignInPage() {
           </Button>
         </form>
         <p className="mt-7 text-center text-sm text-zinc-500">
-          Nouveau sur CommunicationOS ?{" "}
+          Nouveau sur FlowPilot ?{" "}
           <Link className="font-medium text-zinc-200 hover:text-white" to="/sign-up">
             Créer un compte
           </Link>

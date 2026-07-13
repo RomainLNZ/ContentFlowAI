@@ -1,6 +1,6 @@
 import type { NextFunction, Request, Response } from "express";
 import { createRemoteJWKSet, jwtVerify } from "jose";
-import type { ServerEnv } from "@communicationos/config";
+import type { ServerEnv } from "@flowpilot/config";
 import { HttpError } from "../lib/http-error.js";
 
 export function createAuthMiddleware(env: ServerEnv) {
