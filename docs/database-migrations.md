@@ -2,9 +2,9 @@
 
 ## État actuel
 
-Le schéma Prisma se trouve dans `prisma/schema.prisma` et cible PostgreSQL. Il est valide avec Prisma 6.19.3. Au moment de cette stabilisation, aucune migration versionnée n'est présente dans `prisma/migrations` : le schéma décrit donc le modèle attendu, mais ne constitue pas à lui seul un historique de déploiement reproductible.
+Le schéma Prisma se trouve dans `prisma/schema.prisma` et cible PostgreSQL. Il est valide avec Prisma 6.19.3.
 
-La création d'une migration initiale nécessite une base PostgreSQL de développement accessible via `DIRECT_URL`. Elle ne doit pas être générée contre la base de production sans revue préalable.
+La migration initiale `20260714154000_initial` a été générée depuis ce schéma, auditée puis appliquée sur Supabase le 14 juillet 2026. Elle constitue le point de départ de l'historique de déploiement reproductible.
 
 ## Variables de connexion
 
@@ -15,15 +15,10 @@ Les deux valeurs sont des secrets serveur et ne doivent jamais porter le préfix
 
 ## Première migration versionnée
 
-Après avoir configuré une base de développement vide ou dédiée :
-
-```bash
-npm run prisma:generate
-npm run prisma:migrate -- --name initial
-npm run prisma:seed
-```
-
-Cette commande doit créer `prisma/migrations/<timestamp>_initial/migration.sql` et `prisma/migrations/migration_lock.toml`. Relire le SQL avant de versionner la migration, puis exécuter les tests concernés.
+- Migration : `prisma/migrations/20260714154000_initial/migration.sql`.
+- État Supabase : appliquée avec succès.
+- Initialisation : 18 tables applicatives, 4 enums, leurs index et leurs clés étrangères.
+- Seed RBAC : 7 rôles système, 22 permissions et leurs associations.
 
 ## Évolutions suivantes
 
