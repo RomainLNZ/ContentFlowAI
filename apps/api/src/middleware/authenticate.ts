@@ -16,9 +16,15 @@ export function createAuthMiddleware(env: ServerEnv) {
       const { payload } = await jwtVerify(token, jwks, { issuer, audience: "authenticated" });
       if (!payload.sub) throw new HttpError(401, "AUTH_TOKEN_INVALID", "Jeton invalide.");
 
+      const userMetadata =
+        payload.user_metadata && typeof payload.user_metadata === "object"
+          ? (payload.user_metadata as Record<string, unknown>)
+          : undefined;
+      const fullName = userMetadata?.full_name;
       request.auth = {
-        userId: payload.sub,
+        supabaseUserId: payload.sub,
         ...(typeof payload.email === "string" ? { email: payload.email } : {}),
+        ...(typeof fullName === "string" ? { fullName } : {}),
       };
       next();
     } catch (error) {

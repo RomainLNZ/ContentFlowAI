@@ -22,6 +22,19 @@ Les deux valeurs sont des secrets serveur et ne doivent jamais porter le préfix
 
 ## Évolutions suivantes
 
+### Sprint 2 — First Value Loop
+
+- Migration : `prisma/migrations/20260714170000_sprint2_first_value_loop/migration.sql`.
+- État Supabase : appliquée avec succès le 14 juillet 2026.
+- Nature : additive et non destructive ; 6 tables, 8 enums et 2 champs d’organisation ajoutés.
+- Sécurité : RLS sur les 24 tables métier, aucune policy navigateur, révocation des privilèges
+  `anon` et `authenticated` sur les tables, séquences et fonctions `public`.
+- Contrôle : `npm run prisma:security-check` vérifie la couverture RLS, l’absence de policies et
+  l’absence de privilèges directs. `_prisma_migrations` est exclue de la couverture RLS et reste
+  protégée par révocation des privilèges.
+
+## Procédure pour les évolutions suivantes
+
 Pour chaque modification de `schema.prisma` :
 
 1. créer une migration nommée et ciblée avec `npm run prisma:migrate -- --name <description>` ;

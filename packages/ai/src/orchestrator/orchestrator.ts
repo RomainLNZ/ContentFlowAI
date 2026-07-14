@@ -27,6 +27,11 @@ export type AiExecutionRequest = {
   promptVariables?: PromptVariables;
   constraints: readonly string[];
   evaluationCriteria: readonly EvaluationCriterion[];
+  structuredOutput?: {
+    name: string;
+    description?: string;
+    schema: Readonly<Record<string, unknown>>;
+  };
 };
 
 export type AiExecutionResult = {
@@ -126,6 +131,7 @@ export class AiOrchestrator {
               { role: "user", content: rendered.user },
             ],
             settings: model,
+            ...(request.structuredOutput ? { structuredOutput: request.structuredOutput } : {}),
           },
           signal,
         );

@@ -20,6 +20,11 @@ export type ModelRequest = {
   messages: readonly AiMessage[];
   settings: ModelSettings;
   tools?: readonly Readonly<Record<string, unknown>>[];
+  structuredOutput?: {
+    name: string;
+    description?: string;
+    schema: Readonly<Record<string, unknown>>;
+  };
 };
 export type ModelResponse = {
   content: string;
@@ -38,7 +43,10 @@ export type AiErrorCode =
   | "GUARDRAIL_REJECTED"
   | "PLANNING_FAILED"
   | "EVALUATION_FAILED"
-  | "EXECUTION_FAILED";
+  | "EXECUTION_FAILED"
+  | "PROVIDER_TIMEOUT"
+  | "PROVIDER_REFUSAL"
+  | "INVALID_STRUCTURED_OUTPUT";
 
 export class AiCoreError extends Error {
   constructor(

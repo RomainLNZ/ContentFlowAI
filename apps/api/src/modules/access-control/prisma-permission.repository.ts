@@ -22,13 +22,23 @@ export class PrismaPermissionRepository implements PermissionRepository {
       }),
       context.workspaceId
         ? this.prisma.workspaceMembership.findMany({
-            where: { userId: context.userId, workspaceId: context.workspaceId, status: "ACTIVE" },
+            where: {
+              userId: context.userId,
+              workspaceId: context.workspaceId,
+              status: "ACTIVE",
+              workspace: { organizationId: context.organizationId, archivedAt: null },
+            },
             select: permissionSelect,
           })
         : Promise.resolve([]),
       context.teamId
         ? this.prisma.teamMembership.findMany({
-            where: { userId: context.userId, teamId: context.teamId, status: "ACTIVE" },
+            where: {
+              userId: context.userId,
+              teamId: context.teamId,
+              status: "ACTIVE",
+              team: { workspace: { organizationId: context.organizationId, archivedAt: null } },
+            },
             select: permissionSelect,
           })
         : Promise.resolve([]),

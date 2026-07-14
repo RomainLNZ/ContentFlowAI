@@ -10,9 +10,10 @@ export class AccessControlService {
 
   async require(context: AuthorizationContext, permissionKey: string): Promise<void> {
     if (!(await this.can(context, permissionKey))) {
-      const error = new Error(`Missing permission: ${permissionKey}`);
-      error.name = "AuthorizationError";
-      throw error;
+      throw new HttpError(403, "PERMISSION_DENIED", "Vous n’avez pas la permission requise.", {
+        permission: permissionKey,
+      });
     }
   }
 }
+import { HttpError } from "../../lib/http-error.js";

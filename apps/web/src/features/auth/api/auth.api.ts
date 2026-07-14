@@ -2,23 +2,20 @@ import { supabase } from "@/lib/supabase";
 import type { ForgotPasswordValues, SignInValues, SignUpValues } from "../schemas/auth.schema";
 import { isSupabaseConfigured } from "@/lib/env";
 
-const mockDelay = () => new Promise((resolve) => setTimeout(resolve, 850));
+function requireSupabaseConfiguration() {
+  if (!isSupabaseConfigured) {
+    throw new Error("Supabase Auth n’est pas configuré pour cet environnement.");
+  }
+}
 
 export async function signIn(values: SignInValues) {
-  if (!isSupabaseConfigured) {
-    await mockDelay();
-    localStorage.setItem("fp-demo-session", "true");
-    return;
-  }
+  requireSupabaseConfiguration();
   const { error } = await supabase.auth.signInWithPassword(values);
   if (error) throw error;
 }
 
 export async function signUp(values: SignUpValues) {
-  if (!isSupabaseConfigured) {
-    await mockDelay();
-    return;
-  }
+  requireSupabaseConfiguration();
   const { error } = await supabase.auth.signUp({
     email: values.email,
     password: values.password,
@@ -31,10 +28,7 @@ export async function signUp(values: SignUpValues) {
 }
 
 export async function requestPasswordReset({ email }: ForgotPasswordValues) {
-  if (!isSupabaseConfigured) {
-    await mockDelay();
-    return;
-  }
+  requireSupabaseConfiguration();
   const { error } = await supabase.auth.resetPasswordForEmail(email, {
     redirectTo: `${window.location.origin}/reset-password`,
   });

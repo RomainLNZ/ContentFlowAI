@@ -5,7 +5,7 @@ export const providerManifests = [
     id: "openai",
     displayName: "OpenAI",
     capabilities: ["text", "vision", "tools", "json", "embeddings", "streaming"],
-    status: "planned",
+    status: "available",
     configurationKeys: ["OPENAI_API_KEY"],
   },
   {

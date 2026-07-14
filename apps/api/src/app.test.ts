@@ -12,6 +12,8 @@ const testEnv: ServerEnv = {
   SUPABASE_URL: "https://example.supabase.co",
   SUPABASE_ANON_KEY: "test-anon-key-that-is-long-enough",
   SUPABASE_SERVICE_ROLE_KEY: "test-service-role-key-that-is-long-enough",
+  OPENAI_MODEL: "test-model",
+  OPENAI_TIMEOUT_MS: 30_000,
 };
 
 describe("API", () => {

@@ -23,7 +23,8 @@
     "prisma:migrate": "prisma migrate dev",
     "prisma:deploy": "prisma migrate deploy",
     "prisma:studio": "prisma studio",
-    "prisma:seed": "tsx scripts/seed-rbac.ts"
+    "prisma:seed": "tsx scripts/seed-rbac.ts",
+    "prisma:security-check": "tsx scripts/verify-database-security.ts"
   },
   "engines": {
     "node": ">=22.0.0"

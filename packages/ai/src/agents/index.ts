@@ -26,3 +26,4 @@ export interface AgentRouter {
     preferredAgent?: string,
   ): Promise<AgentDefinition | null>;
 }
+export * from "./social-content-agent";
