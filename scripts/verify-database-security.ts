@@ -31,6 +31,10 @@ const businessTables = [
   "campaigns",
   "content_comments",
   "notifications",
+  "director_analyses",
+  "director_recommendations",
+  "director_preferences",
+  "recommendation_feedback",
 ] as const;
 
 type NamedRow = { name: string };

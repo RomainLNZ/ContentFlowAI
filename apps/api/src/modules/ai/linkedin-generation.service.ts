@@ -9,11 +9,11 @@ import {
   ForbiddenTermsGuardrail,
   GuardrailPipeline,
   linkedInGenerationSchema,
-  OpenAiProvider,
   PassThroughEvaluator,
   PromptInjectionGuardrail,
   PromptManager,
   ProviderRegistry,
+  selectAiProvider,
   SingleTaskPlanner,
   SocialContentAgent,
   StructuredMemoryFormatter,
@@ -43,20 +43,25 @@ export class LinkedInGenerationService {
   ) {}
 
   isConfigured() {
-    return Boolean(this.configuration.apiKey);
+    return true;
+  }
+
+  getProviderId() {
+    return this.configuration.apiKey ? "openai" : "mock";
   }
 
   async generate(context: GenerationContext, input: LinkedInGenerationRequest) {
-    if (!this.isConfigured()) {
-      throw new AiCoreError("PROVIDER_UNAVAILABLE", "Le fournisseur IA n’est pas configuré.");
-    }
     const agent = new SocialContentAgent(this.configuration.model);
+    const provider = selectAiProvider({
+      ...(this.configuration.apiKey ? { openAiApiKey: this.configuration.apiKey } : {}),
+      timeoutMs: this.configuration.timeoutMs,
+    });
     const generation = await this.prisma.aiGeneration.create({
       data: {
         organizationId: context.organizationId,
         workspaceId: context.workspaceId,
         userId: context.userId,
-        provider: agent.definition.providerId,
+        provider: provider.descriptor.id,
         model: this.configuration.model,
         agentType: agent.definition.key,
         request: input,
@@ -65,12 +70,7 @@ export class LinkedInGenerationService {
 
     try {
       const providers = new ProviderRegistry();
-      providers.register(
-        new OpenAiProvider({
-          ...(this.configuration.apiKey ? { apiKey: this.configuration.apiKey } : {}),
-          timeoutMs: this.configuration.timeoutMs,
-        }),
-      );
+      providers.register(provider);
       const memory = new PrismaCompanyMemoryProvider(this.prisma);
       const promptDirectory = fileURLToPath(
         new URL("../../../../../packages/ai/prompts/catalog", import.meta.url),
@@ -105,7 +105,7 @@ export class LinkedInGenerationService {
       const result = await orchestrator.execute({
         objective: input.objective,
         context,
-        providerId: agent.definition.providerId,
+        providerId: provider.descriptor.id,
         model: agent.definition.model,
         prompt: agent.definition.prompt,
         promptVariables: {

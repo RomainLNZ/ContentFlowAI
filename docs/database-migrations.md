@@ -43,4 +43,15 @@ Pour chaque modification de `schema.prisma` :
 4. ne jamais modifier une migration déjà partagée ;
 5. déployer les migrations validées avec `npm run prisma:deploy`.
 
+### Sprint 4 — Communication Director, Lot 1
+
+- Migration : `prisma/migrations/20260715121004_sprint4_director_foundations/migration.sql`.
+- Nature : additive et non destructive.
+- Données : analyses, recommandations, préférences et retours utilisateur du Director.
+- Sécurité : les quatre nouvelles tables ont RLS activé, sans policy navigateur, et leurs
+  privilèges sont révoqués pour `anon` et `authenticated`.
+- Activation : le feature flag `communication_director` est créé désactivé par défaut par le seed.
+- Accès : Prisma demeure l’unique couche d’accès métier et chaque enregistrement porte
+  `organizationId` et `workspaceId`.
+
 `prisma migrate dev` est réservé au développement. Les environnements partagés et la production utilisent exclusivement `prisma migrate deploy` dans une étape de déploiement contrôlée.

@@ -26,7 +26,7 @@ export function createAiRouter(env: ServerEnv, prisma: PrismaClient) {
   router.get("/status", (_request, response) => {
     response.json({
       data: {
-        provider: "openai",
+        provider: service.getProviderId(),
         configured: service.isConfigured(),
         model: env.OPENAI_MODEL,
       },

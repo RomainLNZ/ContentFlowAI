@@ -41,6 +41,11 @@ const permissions = [
   ["analytics.read", "Consulter les statistiques"],
   ["ai.use", "Utiliser les fonctions IA"],
   ["ai.configure", "Configurer les agents IA"],
+  ["director.read", "Consulter le Communication Director"],
+  ["director.run", "Lancer une analyse du Communication Director"],
+  ["director.manage", "Administrer les recommandations du Communication Director"],
+  ["director.act", "Agir à partir des recommandations du Communication Director"],
+  ["director.configure", "Configurer la proactivité du Communication Director"],
   ["billing.manage", "Gérer la facturation"],
   ["feature_flag.manage", "Gérer les fonctionnalités"],
 ] as const;
@@ -93,6 +98,11 @@ const grants: Record<(typeof roleDefinitions)[number]["key"], readonly string[] 
     "notification.read",
     "analytics.read",
     "ai.use",
+    "director.read",
+    "director.run",
+    "director.manage",
+    "director.act",
+    "director.configure",
   ],
   EDITOR: [
     "organization.read",
@@ -120,6 +130,9 @@ const grants: Record<(typeof roleDefinitions)[number]["key"], readonly string[] 
     "notification.read",
     "analytics.read",
     "ai.use",
+    "director.read",
+    "director.run",
+    "director.act",
   ],
   AUTHOR: [
     "organization.read",
@@ -139,6 +152,8 @@ const grants: Record<(typeof roleDefinitions)[number]["key"], readonly string[] 
     "notification.read",
     "analytics.read",
     "ai.use",
+    "director.read",
+    "director.act",
   ],
   VIEWER: [
     "organization.read",
@@ -150,10 +165,26 @@ const grants: Record<(typeof roleDefinitions)[number]["key"], readonly string[] 
     "comment.read",
     "notification.read",
     "analytics.read",
+    "director.read",
   ],
 };
 
 async function main() {
+  await prisma.featureFlag.upsert({
+    where: { key: "communication_director" },
+    update: {
+      name: "Communication Director",
+      description: "Active le Directeur Communication assisté par IA.",
+      defaultEnabled: false,
+    },
+    create: {
+      key: "communication_director",
+      name: "Communication Director",
+      description: "Active le Directeur Communication assisté par IA.",
+      defaultEnabled: false,
+    },
+  });
+
   const permissionRecords = new Map<string, string>();
   for (const [key, name] of permissions) {
     const [resource, action] = key.split(".");
