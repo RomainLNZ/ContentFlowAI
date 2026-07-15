@@ -1,4 +1,14 @@
 export const colors = {
+  dark: {
+    background: { canvas: "#08090c", surface: "#0f1117", elevated: "#151821" },
+    foreground: { primary: "#fafafa", secondary: "#a1a1aa", muted: "#71717a" },
+    border: { subtle: "rgb(255 255 255 / 0.08)", strong: "rgb(255 255 255 / 0.16)" },
+  },
+  light: {
+    background: { canvas: "#f6f6f2", surface: "#ffffff", elevated: "#efefe9" },
+    foreground: { primary: "#191a1d", secondary: "#52535a", muted: "#696a70" },
+    border: { subtle: "rgb(24 24 27 / 0.1)", strong: "rgb(24 24 27 / 0.18)" },
+  },
   background: { canvas: "#08090c", surface: "#0f1117", elevated: "#151821" },
   foreground: { primary: "#fafafa", secondary: "#a1a1aa", muted: "#71717a" },
   brand: { 50: "#f5f3ff", 300: "#c4b5fd", 500: "#8b5cf6", 600: "#7c3aed", 700: "#6d28d9" },
@@ -32,6 +42,8 @@ export const spacing = {
   8: "2rem",
   12: "3rem",
   16: "4rem",
+  20: "5rem",
+  24: "6rem",
 } as const;
 export const radius = { sm: "0.5rem", md: "0.75rem", lg: "1rem", xl: "1.5rem", full: "9999px" } as const;
 export const shadows = {

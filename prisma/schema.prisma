@@ -91,6 +91,9 @@ enum NotificationType {
   CHANGES_REQUESTED
   COMMENT_ADDED
   CONTENT_SCHEDULED
+  DIRECTOR_ANALYSIS_COMPLETED
+  DIRECTOR_HIGH_PRIORITY_RECOMMENDATION
+  DIRECTOR_RECOMMENDATION_ACCEPTED
 }
 
 enum ContentVariantStyle {
@@ -755,25 +758,28 @@ model ContentComment {
 }
 
 model Notification {
-  id             String           @id @default(uuid()) @db.Uuid
-  organizationId String           @map("organization_id") @db.Uuid
-  workspaceId    String           @map("workspace_id") @db.Uuid
-  recipientId    String           @map("recipient_id") @db.Uuid
-  actorId        String?          @map("actor_id") @db.Uuid
-  contentId      String?          @map("content_id") @db.Uuid
-  type           NotificationType
-  payload        Json             @default("{}")
-  readAt         DateTime?        @map("read_at") @db.Timestamptz(3)
-  createdAt      DateTime         @default(now()) @map("created_at") @db.Timestamptz(3)
+  id               String           @id @default(uuid()) @db.Uuid
+  organizationId   String           @map("organization_id") @db.Uuid
+  workspaceId      String           @map("workspace_id") @db.Uuid
+  recipientId      String           @map("recipient_id") @db.Uuid
+  actorId          String?          @map("actor_id") @db.Uuid
+  contentId        String?          @map("content_id") @db.Uuid
+  recommendationId String?          @map("recommendation_id") @db.Uuid
+  type             NotificationType
+  payload          Json             @default("{}")
+  readAt           DateTime?        @map("read_at") @db.Timestamptz(3)
+  createdAt        DateTime         @default(now()) @map("created_at") @db.Timestamptz(3)
 
-  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  workspace    Workspace    @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  recipient    User         @relation("NotificationRecipient", fields: [recipientId], references: [id], onDelete: Cascade)
-  actor        User?        @relation("NotificationActor", fields: [actorId], references: [id], onDelete: SetNull)
-  content      ContentItem? @relation(fields: [contentId], references: [id], onDelete: Cascade)
+  organization   Organization            @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  workspace      Workspace               @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  recipient      User                    @relation("NotificationRecipient", fields: [recipientId], references: [id], onDelete: Cascade)
+  actor          User?                   @relation("NotificationActor", fields: [actorId], references: [id], onDelete: SetNull)
+  content        ContentItem?            @relation(fields: [contentId], references: [id], onDelete: Cascade)
+  recommendation DirectorRecommendation? @relation(fields: [recommendationId], references: [id], onDelete: Cascade)
 
   @@index([recipientId, organizationId, workspaceId, readAt, createdAt(sort: Desc)])
   @@index([contentId])
+  @@index([recommendationId])
   @@map("notifications")
 }
 
@@ -836,14 +842,15 @@ model DirectorRecommendation {
   createdAt        DateTime                       @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt        DateTime                       @updatedAt @map("updated_at") @db.Timestamptz(3)
 
-  organization Organization             @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  workspace    Workspace                @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  analysis     DirectorAnalysis         @relation(fields: [analysisId], references: [id], onDelete: Cascade)
-  campaign     Campaign?                @relation(fields: [campaignId], references: [id], onDelete: SetNull)
-  content      ContentItem?             @relation(fields: [contentId], references: [id], onDelete: SetNull)
-  actedBy      User?                    @relation("DirectorRecommendationActor", fields: [actedById], references: [id], onDelete: SetNull)
-  dismissedBy  User?                    @relation("DirectorRecommendationDismissedBy", fields: [dismissedById], references: [id], onDelete: SetNull)
-  feedback     RecommendationFeedback[]
+  organization  Organization             @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  workspace     Workspace                @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  analysis      DirectorAnalysis         @relation(fields: [analysisId], references: [id], onDelete: Cascade)
+  campaign      Campaign?                @relation(fields: [campaignId], references: [id], onDelete: SetNull)
+  content       ContentItem?             @relation(fields: [contentId], references: [id], onDelete: SetNull)
+  actedBy       User?                    @relation("DirectorRecommendationActor", fields: [actedById], references: [id], onDelete: SetNull)
+  dismissedBy   User?                    @relation("DirectorRecommendationDismissedBy", fields: [dismissedById], references: [id], onDelete: SetNull)
+  feedback      RecommendationFeedback[]
+  notifications Notification[]
 
   @@unique([organizationId, workspaceId, deduplicationKey])
   @@index([organizationId, workspaceId, status, priority, createdAt(sort: Desc)])
@@ -861,6 +868,7 @@ model DirectorPreference {
   desiredWeeklyFrequency      Int                          @default(3) @map("desired_weekly_frequency")
   preferredWeekdays           Int[]                        @default([1, 2, 3, 4, 5]) @map("preferred_weekdays")
   preferredHours              String[]                     @default(["09:00"]) @map("preferred_hours")
+  timezone                    String                       @default("Europe/Paris")
   silenceThresholdDays        Int                          @default(7) @map("silence_threshold_days")
   maxDailyRecommendations     Int                          @default(5) @map("max_daily_recommendations")
   notificationsEnabled        Boolean                      @default(true) @map("notifications_enabled")

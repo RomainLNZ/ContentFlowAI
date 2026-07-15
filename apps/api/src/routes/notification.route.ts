@@ -27,6 +27,7 @@ export function createNotificationRouter(env: ServerEnv, prisma: PrismaClient) {
         include: {
           actor: { select: { id: true, fullName: true } },
           content: { select: { id: true, title: true } },
+          recommendation: { select: { id: true, title: true, priority: true, status: true } },
         },
         orderBy: { createdAt: "desc" },
         take: 50,

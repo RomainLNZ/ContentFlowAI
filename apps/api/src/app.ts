@@ -15,6 +15,7 @@ import { createCommentRouter } from "./routes/comment.route.js";
 import { createCalendarRouter } from "./routes/calendar.route.js";
 import { createWorkspaceMemberRouter } from "./routes/workspace-member.route.js";
 import { createNotificationRouter } from "./routes/notification.route.js";
+import { createDirectorRouter } from "./routes/director.route.js";
 import { prisma } from "./lib/prisma.js";
 
 export function createApp(env: ServerEnv) {
@@ -38,6 +39,7 @@ export function createApp(env: ServerEnv) {
   app.use("/api/v1/workspace-members", createWorkspaceMemberRouter(env, prisma));
   app.use("/api/v1/notifications", createNotificationRouter(env, prisma));
   app.use("/api/v1/brand-profile", createBrandProfileRouter(env, prisma));
+  app.use("/api/v1/director", createDirectorRouter(env, prisma));
   app.use(notFoundHandler);
   app.use(errorHandler);
   return app;

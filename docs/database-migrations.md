@@ -54,4 +54,12 @@ Pour chaque modification de `schema.prisma` :
 - Accès : Prisma demeure l’unique couche d’accès métier et chaque enregistrement porte
   `organizationId` et `workspaceId`.
 
+### Sprint 4 — Communication Director, Lot 4
+
+- Migration : `prisma/migrations/20260715132518_sprint4_director_api/migration.sql`.
+- Ajouts : fuseau horaire des préférences, notifications Director et relation notification–recommandation.
+- Concurrence : index unique partiel empêchant deux analyses `RUNNING` pour le même couple
+  organisation/workspace.
+- Nature : additive et non destructive ; aucune nouvelle table ni exposition navigateur.
+
 `prisma migrate dev` est réservé au développement. Les environnements partagés et la production utilisent exclusivement `prisma migrate deploy` dans une étape de déploiement contrôlée.

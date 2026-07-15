@@ -1,5 +1,6 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import type { ReactNode } from "react";
+import { ToastProvider } from "@flowpilot/ui";
 import { ThemeProvider } from "./theme-provider";
 import { AuthProvider } from "@/features/auth/auth-context";
 import { ApplicationProvider } from "./application-context";
@@ -12,9 +13,11 @@ export function AppProviders({ children }: { children: ReactNode }) {
   return (
     <ThemeProvider>
       <QueryClientProvider client={queryClient}>
-        <AuthProvider>
-          <ApplicationProvider>{children}</ApplicationProvider>
-        </AuthProvider>
+        <ToastProvider>
+          <AuthProvider>
+            <ApplicationProvider>{children}</ApplicationProvider>
+          </AuthProvider>
+        </ToastProvider>
       </QueryClientProvider>
     </ThemeProvider>
   );
