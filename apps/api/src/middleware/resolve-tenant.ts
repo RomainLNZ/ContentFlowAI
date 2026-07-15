@@ -33,19 +33,20 @@ export function createTenantMiddleware(prisma: PrismaClient) {
         throw new HttpError(403, "TENANT_ACCESS_DENIED", "Accès refusé à cette organisation.");
       }
 
-      const workspace = await prisma.workspace.findFirst({
+      const workspaceMembership = await prisma.workspaceMembership.findFirst({
         where: {
-          id: workspaceId.data,
-          organizationId: organizationId.data,
-          archivedAt: null,
+          workspaceId: workspaceId.data,
+          userId: request.currentUser.id,
+          status: "ACTIVE",
+          workspace: { organizationId: organizationId.data, archivedAt: null },
         },
-        select: { id: true },
+        select: { workspaceId: true },
       });
-      if (!workspace) {
+      if (!workspaceMembership) {
         throw new HttpError(403, "TENANT_ACCESS_DENIED", "Workspace invalide pour cette organisation.");
       }
 
-      request.tenant = { organizationId: organizationId.data, workspaceId: workspace.id };
+      request.tenant = { organizationId: organizationId.data, workspaceId: workspaceMembership.workspaceId };
       next();
     } catch (error) {
       next(error);

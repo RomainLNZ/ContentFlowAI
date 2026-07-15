@@ -51,11 +51,21 @@ export function createOnboardingRouter(env: ServerEnv, prisma: PrismaClient) {
       if (!request.currentUser) throw new HttpError(401, "AUTH_REQUIRED", "Authentification requise.");
       const parsed = completeOnboardingSchema.safeParse(request.body);
       if (!parsed.success) {
+        const fields = parsed.error.issues.map((issue) => ({
+          field: issue.path.join("."),
+          message: issue.message,
+        }));
+        if (env.NODE_ENV === "development") {
+          request.log.warn({ validation: fields }, "Onboarding validation failed");
+        }
         throw new HttpError(
           422,
           "VALIDATION_ERROR",
-          "Données d’onboarding invalides.",
-          parsed.error.flatten(),
+          fields
+            .map(({ message }) => message)
+            .slice(0, 3)
+            .join(" "),
+          { fields },
         );
       }
       response.status(201).json({ data: await service.complete(request.currentUser.id, parsed.data) });

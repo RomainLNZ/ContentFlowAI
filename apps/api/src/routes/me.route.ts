@@ -23,7 +23,10 @@ export function createMeRouter(env: ServerEnv, prisma: PrismaClient) {
               name: true,
               slug: true,
               workspaces: {
-                where: { archivedAt: null },
+                where: {
+                  archivedAt: null,
+                  memberships: { some: { userId: request.currentUser.id, status: "ACTIVE" } },
+                },
                 select: { id: true, name: true, slug: true, isDefault: true },
                 orderBy: [{ isDefault: "desc" }, { createdAt: "asc" }],
               },

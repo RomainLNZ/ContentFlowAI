@@ -46,6 +46,12 @@ const ContentEditorPage = lazy(() =>
     default: module.ContentEditorPage,
   })),
 );
+const CalendarPage = lazy(() =>
+  import("@/features/calendar/pages/calendar-page").then((module) => ({ default: module.CalendarPage })),
+);
+const CampaignPage = lazy(() =>
+  import("@/features/campaign/pages/campaign-page").then((module) => ({ default: module.CampaignPage })),
+);
 const ResetPasswordPage = lazy(() =>
   import("@/features/auth/pages/reset-password-page").then((module) => ({
     default: module.ResetPasswordPage,
@@ -141,6 +147,8 @@ export const router = createBrowserRouter([
     ["/app/create", <ContentStudioPage key="studio" />],
     ["/app/content", <ContentListPage key="list" />],
     ["/app/content/:id", <ContentEditorPage key="editor" />],
+    ["/app/calendar", <CalendarPage key="calendar" />],
+    ["/app/campaigns", <CampaignPage key="campaigns" />],
   ].map(([path, page]) => ({
     path: path as string,
     element: (

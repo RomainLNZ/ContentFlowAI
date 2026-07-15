@@ -122,7 +122,11 @@ export class OnboardingService {
     } catch (error) {
       if (error instanceof HttpError) throw error;
       if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
-        throw new HttpError(409, "ORGANIZATION_SLUG_TAKEN", "Ce nom d’organisation est déjà utilisé.");
+        throw new HttpError(
+          409,
+          "ORGANIZATION_SLUG_TAKEN",
+          "L’identifiant URL est déjà utilisé. Choisissez-en un autre.",
+        );
       }
       throw error;
     }

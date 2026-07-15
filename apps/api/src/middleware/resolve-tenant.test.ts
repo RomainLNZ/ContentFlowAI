@@ -17,7 +17,7 @@ describe("createTenantMiddleware", () => {
   it("refuse un workspace qui n’appartient pas à l’organisation demandée", async () => {
     const prisma = {
       organizationMembership: { findFirst: vi.fn().mockResolvedValue({ organizationId }) },
-      workspace: { findFirst: vi.fn().mockResolvedValue(null) },
+      workspaceMembership: { findFirst: vi.fn().mockResolvedValue(null) },
     } as unknown as PrismaClient;
     const next = vi.fn() as NextFunction;
     await createTenantMiddleware(prisma)(
@@ -31,7 +31,7 @@ describe("createTenantMiddleware", () => {
   it("résout le tenant après validation de l’adhésion et du workspace", async () => {
     const prisma = {
       organizationMembership: { findFirst: vi.fn().mockResolvedValue({ organizationId }) },
-      workspace: { findFirst: vi.fn().mockResolvedValue({ id: workspaceId }) },
+      workspaceMembership: { findFirst: vi.fn().mockResolvedValue({ workspaceId }) },
     } as unknown as PrismaClient;
     const request = requestFor({ "x-organization-id": organizationId, "x-workspace-id": workspaceId });
     const next = vi.fn() as NextFunction;

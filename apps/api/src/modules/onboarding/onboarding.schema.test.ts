@@ -25,4 +25,13 @@ describe("completeOnboardingSchema", () => {
     });
     expect(parsed.success).toBe(false);
   });
+
+  it("explique précisément un site invalide", () => {
+    const parsed = completeOnboardingSchema.safeParse({
+      ...valid,
+      organization: { ...valid.organization, websiteUrl: "flowpilot.app" },
+    });
+    expect(parsed.success).toBe(false);
+    if (!parsed.success) expect(parsed.error.issues[0]?.message).toContain("site web est invalide");
+  });
 });

@@ -1,4 +1,10 @@
 @import "tailwindcss";
+
+@layer components {
+  .input {
+    @apply mt-2 w-full rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3 text-zinc-100 outline-none transition focus:border-violet-400/50;
+  }
+}
 @import "@flowpilot/ui/styles.css";
 @source "../../../../packages/ui/src";
 

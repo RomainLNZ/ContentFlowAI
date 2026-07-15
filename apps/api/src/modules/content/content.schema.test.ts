@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { createContentSchema, listContentSchema } from "./content.schema.js";
+import { createContentSchema, listContentSchema, updateContentSchema } from "./content.schema.js";
 
 describe("content schemas", () => {
   it("crée un brouillon par défaut", () => {
@@ -8,5 +8,9 @@ describe("content schemas", () => {
 
   it("borne la pagination", () => {
     expect(listContentSchema.safeParse({ pageSize: "101" }).success).toBe(false);
+  });
+
+  it("refuse une mise à jour générique qui ne contient qu’un statut", () => {
+    expect(updateContentSchema.safeParse({ status: "APPROVED" }).success).toBe(false);
   });
 });

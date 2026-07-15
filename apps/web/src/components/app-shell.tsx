@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { supabase } from "@/lib/supabase";
 import { useApplication } from "@/app/application-context";
+import { NotificationCenter } from "@/features/notifications/notification-center";
 
 export function AppShell({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
@@ -26,8 +27,21 @@ export function AppShell({ children }: { children: ReactNode }) {
             >
               Mes contenus
             </NavLink>
+            <NavLink
+              to="/app/calendar"
+              className={({ isActive }) => (isActive ? "text-violet-300" : "hover:text-white")}
+            >
+              Calendrier
+            </NavLink>
+            <NavLink
+              to="/app/campaigns"
+              className={({ isActive }) => (isActive ? "text-violet-300" : "hover:text-white")}
+            >
+              Campagnes
+            </NavLink>
           </nav>
           <span className="hidden text-sm text-zinc-500 sm:block">{me?.user.fullName || me?.user.email}</span>
+          <NotificationCenter />
           <button
             className="rounded-lg border border-white/10 px-3 py-2 text-sm"
             onClick={() => void supabase.auth.signOut().then(() => navigate("/sign-in"))}

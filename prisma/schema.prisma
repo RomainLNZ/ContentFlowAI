@@ -70,7 +70,27 @@ enum ContentPlatform {
 enum ContentStatus {
   DRAFT
   READY_FOR_REVIEW
+  CHANGES_REQUESTED
+  APPROVED
+  SCHEDULED
+  PUBLISHED
   ARCHIVED
+}
+
+enum CampaignStatus {
+  DRAFT
+  ACTIVE
+  COMPLETED
+  ARCHIVED
+}
+
+enum NotificationType {
+  CONTENT_ASSIGNED
+  REVIEW_REQUESTED
+  CONTENT_APPROVED
+  CHANGES_REQUESTED
+  COMMENT_ADDED
+  CONTENT_SCHEDULED
 }
 
 enum ContentVariantStyle {
@@ -107,6 +127,13 @@ model User {
   auditLogs               AuditLog[]
   onboardingProgress      OnboardingProgress?
   contentItems            ContentItem[]
+  assignedContentItems    ContentItem[]            @relation("ContentAssignee")
+  reviewedContentItems    ContentItem[]            @relation("ContentReviewer")
+  approvedContentItems    ContentItem[]            @relation("ContentApprover")
+  campaigns               Campaign[]               @relation("CampaignCreator")
+  contentComments         ContentComment[]
+  receivedNotifications   Notification[]           @relation("NotificationRecipient")
+  sentNotifications       Notification[]           @relation("NotificationActor")
   aiGenerations           AiGeneration[]
 
   @@index([platformRoleId])
@@ -149,6 +176,9 @@ model Organization {
   contentItems            ContentItem[]
   contentVariants         ContentVariant[]
   aiGenerations           AiGeneration[]
+  campaigns               Campaign[]
+  contentComments         ContentComment[]
+  notifications           Notification[]
 
   @@index([createdById])
   @@map("organizations")
@@ -174,6 +204,10 @@ model Workspace {
   contentItems            ContentItem[]
   contentVariants         ContentVariant[]
   aiGenerations           AiGeneration[]
+  campaigns               Campaign[]
+  contentComments         ContentComment[]
+  auditLogs               AuditLog[]
+  notifications           Notification[]
 
   @@unique([organizationId, slug])
   @@index([organizationId, archivedAt])
@@ -436,6 +470,7 @@ model AuditLog {
   id             BigInt   @id @default(autoincrement())
   organizationId String   @map("organization_id") @db.Uuid
   actorId        String?  @map("actor_id") @db.Uuid
+  workspaceId    String?  @map("workspace_id") @db.Uuid
   action         String
   entityType     String   @map("entity_type")
   entityId       String?  @map("entity_id")
@@ -444,9 +479,11 @@ model AuditLog {
 
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   actor        User?        @relation(fields: [actorId], references: [id], onDelete: SetNull)
+  workspace    Workspace?   @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
 
   @@index([organizationId, createdAt(sort: Desc)])
   @@index([actorId])
+  @@index([organizationId, workspaceId, entityType, entityId, createdAt(sort: Desc)])
   @@map("audit_logs")
 }
 
@@ -560,30 +597,123 @@ model ContentVariant {
 }
 
 model ContentItem {
-  id              String                      @id @default(uuid()) @db.Uuid
-  organizationId  String                      @map("organization_id") @db.Uuid
-  workspaceId     String                      @map("workspace_id") @db.Uuid
-  authorId        String                      @map("author_id") @db.Uuid
-  sourceVariantId String?                     @map("source_variant_id") @db.Uuid
-  type            ContentType                 @default(SOCIAL_POST)
-  platform        ContentPlatform             @default(LINKEDIN)
-  title           String
-  body            String
-  status          ContentStatus               @default(DRAFT)
-  objective       CommunicationObjectiveType?
-  tone            String?
-  targetAudience  String?                     @map("target_audience")
-  createdAt       DateTime                    @default(now()) @map("created_at") @db.Timestamptz(3)
-  updatedAt       DateTime                    @updatedAt @map("updated_at") @db.Timestamptz(3)
-  archivedAt      DateTime?                   @map("archived_at") @db.Timestamptz(3)
+  id                  String                      @id @default(uuid()) @db.Uuid
+  organizationId      String                      @map("organization_id") @db.Uuid
+  workspaceId         String                      @map("workspace_id") @db.Uuid
+  authorId            String                      @map("author_id") @db.Uuid
+  sourceVariantId     String?                     @map("source_variant_id") @db.Uuid
+  type                ContentType                 @default(SOCIAL_POST)
+  platform            ContentPlatform             @default(LINKEDIN)
+  title               String
+  body                String
+  cta                 String?
+  hashtags            String[]                    @default([])
+  status              ContentStatus               @default(DRAFT)
+  objective           CommunicationObjectiveType?
+  tone                String?
+  targetAudience      String?                     @map("target_audience")
+  scheduledAt         DateTime?                   @map("scheduled_at") @db.Timestamptz(3)
+  publishedAt         DateTime?                   @map("published_at") @db.Timestamptz(3)
+  timezone            String                      @default("Europe/Paris")
+  approvalRequestedAt DateTime?                   @map("approval_requested_at") @db.Timestamptz(3)
+  approvedAt          DateTime?                   @map("approved_at") @db.Timestamptz(3)
+  approvedById        String?                     @map("approved_by_id") @db.Uuid
+  assigneeId          String?                     @map("assignee_id") @db.Uuid
+  reviewerId          String?                     @map("reviewer_id") @db.Uuid
+  campaignId          String?                     @map("campaign_id") @db.Uuid
+  createdAt           DateTime                    @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt           DateTime                    @updatedAt @map("updated_at") @db.Timestamptz(3)
+  archivedAt          DateTime?                   @map("archived_at") @db.Timestamptz(3)
 
-  organization  Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  workspace     Workspace       @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  author        User            @relation(fields: [authorId], references: [id], onDelete: Restrict)
-  sourceVariant ContentVariant? @relation(fields: [sourceVariantId], references: [id], onDelete: SetNull)
+  organization  Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  workspace     Workspace        @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  author        User             @relation(fields: [authorId], references: [id], onDelete: Restrict)
+  sourceVariant ContentVariant?  @relation(fields: [sourceVariantId], references: [id], onDelete: SetNull)
+  approvedBy    User?            @relation("ContentApprover", fields: [approvedById], references: [id], onDelete: SetNull)
+  assignee      User?            @relation("ContentAssignee", fields: [assigneeId], references: [id], onDelete: SetNull)
+  reviewer      User?            @relation("ContentReviewer", fields: [reviewerId], references: [id], onDelete: SetNull)
+  campaign      Campaign?        @relation(fields: [campaignId], references: [id], onDelete: SetNull)
+  comments      ContentComment[]
+  notifications Notification[]
 
   @@index([organizationId, workspaceId, status, updatedAt(sort: Desc)])
   @@index([authorId])
   @@index([sourceVariantId])
+  @@index([organizationId, workspaceId, scheduledAt])
+  @@index([organizationId, workspaceId, status, scheduledAt])
+  @@index([organizationId, workspaceId, campaignId, scheduledAt])
+  @@index([assigneeId, status])
+  @@index([reviewerId, status])
   @@map("content_items")
+}
+
+model Campaign {
+  id             String         @id @default(uuid()) @db.Uuid
+  organizationId String         @map("organization_id") @db.Uuid
+  workspaceId    String         @map("workspace_id") @db.Uuid
+  createdById    String         @map("created_by_id") @db.Uuid
+  name           String
+  description    String?
+  objective      String?
+  startDate      DateTime?      @map("start_date") @db.Date
+  endDate        DateTime?      @map("end_date") @db.Date
+  status         CampaignStatus @default(DRAFT)
+  color          String         @default("#8B5CF6")
+  createdAt      DateTime       @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt      DateTime       @updatedAt @map("updated_at") @db.Timestamptz(3)
+  archivedAt     DateTime?      @map("archived_at") @db.Timestamptz(3)
+
+  organization Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  workspace    Workspace     @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  createdBy    User          @relation("CampaignCreator", fields: [createdById], references: [id], onDelete: Restrict)
+  contentItems ContentItem[]
+
+  @@index([organizationId, workspaceId, status, startDate])
+  @@index([createdById])
+  @@map("campaigns")
+}
+
+model ContentComment {
+  id               String    @id @default(uuid()) @db.Uuid
+  organizationId   String    @map("organization_id") @db.Uuid
+  workspaceId      String    @map("workspace_id") @db.Uuid
+  contentId        String    @map("content_id") @db.Uuid
+  authorId         String    @map("author_id") @db.Uuid
+  body             String
+  mentionedUserIds String[]  @default([]) @map("mentioned_user_ids") @db.Uuid
+  createdAt        DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt        DateTime  @updatedAt @map("updated_at") @db.Timestamptz(3)
+  deletedAt        DateTime? @map("deleted_at") @db.Timestamptz(3)
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  workspace    Workspace    @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  content      ContentItem  @relation(fields: [contentId], references: [id], onDelete: Cascade)
+  author       User         @relation(fields: [authorId], references: [id], onDelete: Restrict)
+
+  @@index([organizationId, workspaceId, contentId, createdAt])
+  @@index([authorId])
+  @@map("content_comments")
+}
+
+model Notification {
+  id             String           @id @default(uuid()) @db.Uuid
+  organizationId String           @map("organization_id") @db.Uuid
+  workspaceId    String           @map("workspace_id") @db.Uuid
+  recipientId    String           @map("recipient_id") @db.Uuid
+  actorId        String?          @map("actor_id") @db.Uuid
+  contentId      String?          @map("content_id") @db.Uuid
+  type           NotificationType
+  payload        Json             @default("{}")
+  readAt         DateTime?        @map("read_at") @db.Timestamptz(3)
+  createdAt      DateTime         @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  workspace    Workspace    @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  recipient    User         @relation("NotificationRecipient", fields: [recipientId], references: [id], onDelete: Cascade)
+  actor        User?        @relation("NotificationActor", fields: [actorId], references: [id], onDelete: SetNull)
+  content      ContentItem? @relation(fields: [contentId], references: [id], onDelete: Cascade)
+
+  @@index([recipientId, organizationId, workspaceId, readAt, createdAt(sort: Desc)])
+  @@index([contentId])
+  @@map("notifications")
 }

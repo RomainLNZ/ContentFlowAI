@@ -28,6 +28,9 @@ const businessTables = [
   "ai_generations",
   "content_variants",
   "content_items",
+  "campaigns",
+  "content_comments",
+  "notifications",
 ] as const;
 
 type NamedRow = { name: string };

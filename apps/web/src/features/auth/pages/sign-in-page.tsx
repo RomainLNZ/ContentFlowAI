@@ -5,7 +5,7 @@ import { useForm } from "react-hook-form";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@flowpilot/ui";
 import { isSupabaseConfigured } from "@/lib/env";
-import { signIn } from "../api/auth.api";
+import { authErrorMessage, signIn } from "../api/auth.api";
 import { AuthShell } from "../components/auth-shell";
 import { FormField } from "../components/form-field";
 import { signInSchema, type SignInValues } from "../schemas/auth.schema";
@@ -68,10 +68,10 @@ export function SignInPage() {
           </div>
           {mutation.error && (
             <p role="alert" className="text-sm text-rose-400">
-              Connexion impossible. Vérifiez vos identifiants.
+              {authErrorMessage(mutation.error, "sign-in")}
             </p>
           )}
-          <Button className="w-full" disabled={mutation.isPending}>
+          <Button type="submit" className="w-full" disabled={mutation.isPending}>
             {mutation.isPending ? (
               <LoaderCircle className="size-4 animate-spin" />
             ) : (
