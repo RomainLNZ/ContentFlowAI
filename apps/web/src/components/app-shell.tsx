@@ -9,7 +9,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
   const { me } = useApplication();
   return (
-    <div className="min-h-screen bg-[#08090c] text-zinc-100">
+    <div data-theme="dark" className="min-h-screen bg-[#08090c] text-zinc-100">
       <header className="border-b border-white/10 bg-black/20 backdrop-blur-xl">
         <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-x-6 gap-y-3 px-4 py-3 sm:px-6">
           <Link to="/app" className="text-xl font-semibold">

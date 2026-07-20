@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 import { CalendarDays, ChevronLeft, ChevronRight, MessageSquare, Plus, Search, X } from "lucide-react";
 import { AppShell } from "@/components/app-shell";
 import { useApplication } from "@/app/application-context";
-import { apiRequest } from "@/lib/api-client";
+import { useDataTransport } from "@/app/data-transport-context";
 import type { CalendarItem, Campaign, ContentStatus } from "../calendar.types";
 
 type View = "month" | "week" | "list";
@@ -42,6 +42,7 @@ function rangeFor(anchor: Date, view: View) {
 
 export function CalendarPage() {
   const { tenant } = useApplication();
+  const transport = useDataTransport();
   const [view, setView] = useState<View>(
     () => (localStorage.getItem("flowpilot-calendar-view") as View) || "month",
   );
@@ -63,15 +64,15 @@ export function CalendarPage() {
     if (query) params.set("q", query);
     if (status) params.set("status", status);
     if (campaignId) params.set("campaignId", campaignId);
-    const result = await apiRequest<{ items: CalendarItem[] }>(`/v1/calendar?${params}`, {}, tenant);
+    const result = await transport.request<{ items: CalendarItem[] }>(`/v1/calendar?${params}`, {}, tenant);
     setItems(result.items);
     setLoading(false);
   }
 
   useEffect(() => {
     if (!tenant) return;
-    void apiRequest<Campaign[]>("/v1/campaigns", {}, tenant).then(setCampaigns);
-  }, [tenant]);
+    void transport.request<Campaign[]>("/v1/campaigns", {}, tenant).then(setCampaigns);
+  }, [tenant, transport]);
   useEffect(() => {
     const timer = window.setTimeout(() => void load(), 200);
     return () => clearTimeout(timer);
@@ -102,7 +103,7 @@ export function CalendarPage() {
     ).toISOString();
     setItems((current) => current.map((entry) => (entry.id === item.id ? { ...entry, scheduledAt } : entry)));
     try {
-      await apiRequest(
+      await transport.request(
         `/v1/content/${item.id}/calendar-date`,
         {
           method: "PATCH",
@@ -461,17 +462,18 @@ function QuickCreate({
   onCreated: () => void;
 }) {
   const { tenant } = useApplication();
+  const transport = useDataTransport();
   const [title, setTitle] = useState("");
   const [campaignId, setCampaignId] = useState("");
   async function submit(e: FormEvent) {
     e.preventDefault();
     if (!tenant) return;
-    const item = await apiRequest<{ id: string }>(
+    const item = await transport.request<{ id: string }>(
       "/v1/content",
       { method: "POST", body: JSON.stringify({ title, body: title, campaignId: campaignId || undefined }) },
       tenant,
     );
-    await apiRequest(
+    await transport.request(
       `/v1/content/${item.id}/calendar-date`,
       {
         method: "PATCH",

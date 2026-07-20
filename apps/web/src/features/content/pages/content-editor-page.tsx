@@ -4,7 +4,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { Archive, Copy, MessageSquare, Save } from "lucide-react";
 import { AppShell } from "@/components/app-shell";
 import { useApplication } from "@/app/application-context";
-import { apiRequest } from "@/lib/api-client";
+import { useDataTransport } from "@/app/data-transport-context";
 import type { Campaign } from "@/features/calendar/calendar.types";
 import type { ContentItem } from "../content.types";
 
@@ -38,6 +38,7 @@ export function ContentEditorPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { tenant } = useApplication();
+  const transport = useDataTransport();
   const [item, setItem] = useState<ContentItem>();
   const [members, setMembers] = useState<Member[]>([]);
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
@@ -48,11 +49,11 @@ export function ContentEditorPage() {
   async function load() {
     if (!tenant || !id) return;
     const [content, memberData, campaignData, commentData, historyData] = await Promise.all([
-      apiRequest<ContentItem>(`/v1/content/${id}`, {}, tenant),
-      apiRequest<Member[]>("/v1/workspace-members", {}, tenant),
-      apiRequest<Campaign[]>("/v1/campaigns", {}, tenant),
-      apiRequest<Comment[]>(`/v1/content/${id}/comments`, {}, tenant),
-      apiRequest<History[]>(`/v1/content/${id}/history`, {}, tenant),
+      transport.request<ContentItem>(`/v1/content/${id}`, {}, tenant),
+      transport.request<Member[]>("/v1/workspace-members", {}, tenant),
+      transport.request<Campaign[]>("/v1/campaigns", {}, tenant),
+      transport.request<Comment[]>(`/v1/content/${id}/comments`, {}, tenant),
+      transport.request<History[]>(`/v1/content/${id}/history`, {}, tenant),
     ]);
     setItem(content);
     setMembers(memberData);
@@ -66,7 +67,7 @@ export function ContentEditorPage() {
   async function save(e: FormEvent) {
     e.preventDefault();
     if (!tenant || !item) return;
-    const updated = await apiRequest<ContentItem>(
+    const updated = await transport.request<ContentItem>(
       `/v1/content/${item.id}`,
       {
         method: "PUT",
@@ -85,7 +86,7 @@ export function ContentEditorPage() {
   }
   async function transition(to: ContentItem["status"], extra: object = {}) {
     if (!tenant || !item) return;
-    const updated = await apiRequest<ContentItem>(
+    const updated = await transport.request<ContentItem>(
       `/v1/content/${item.id}/transitions`,
       { method: "POST", body: JSON.stringify({ to, ...extra }) },
       tenant,
@@ -95,7 +96,7 @@ export function ContentEditorPage() {
   }
   async function assign(field: "assigneeId" | "reviewerId", value: string) {
     if (!tenant || !item) return;
-    const updated = await apiRequest<ContentItem>(
+    const updated = await transport.request<ContentItem>(
       `/v1/content/${item.id}/assign`,
       { method: "POST", body: JSON.stringify({ [field]: value || null }) },
       tenant,
@@ -105,7 +106,7 @@ export function ContentEditorPage() {
   async function moveDate(value: string) {
     if (!tenant || !item) return;
     const scheduledAt = value ? new Date(value).toISOString() : null;
-    const updated = await apiRequest<ContentItem>(
+    const updated = await transport.request<ContentItem>(
       `/v1/content/${item.id}/calendar-date`,
       {
         method: "PATCH",
@@ -121,7 +122,7 @@ export function ContentEditorPage() {
   async function addComment(e: FormEvent) {
     e.preventDefault();
     if (!tenant || !item || !comment.trim()) return;
-    await apiRequest(
+    await transport.request(
       `/v1/content/${item.id}/comments`,
       { method: "POST", body: JSON.stringify({ body: comment, mentionedUserIds: [] }) },
       tenant,
@@ -131,7 +132,7 @@ export function ContentEditorPage() {
   }
   async function duplicate() {
     if (!tenant || !item) return;
-    const copy = await apiRequest<ContentItem>(
+    const copy = await transport.request<ContentItem>(
       `/v1/content/${item.id}/duplicate`,
       { method: "POST" },
       tenant,

@@ -1,8 +1,9 @@
 /* eslint-disable react-refresh/only-export-components -- provider and hook share the typed application context */
 import { useQuery } from "@tanstack/react-query";
 import { createContext, useContext, useMemo, useState, type ReactNode } from "react";
-import { apiRequest, type TenantRequest } from "@/lib/api-client";
+import type { TenantRequest } from "@/lib/data-transport";
 import { useAuth } from "@/features/auth/auth-context";
+import { useDataTransport } from "./data-transport-context";
 
 export type Me = {
   user: {
@@ -35,9 +36,10 @@ const ApplicationContext = createContext<ApplicationState | null>(null);
 
 export function ApplicationProvider({ children }: { children: ReactNode }) {
   const { session } = useAuth();
+  const transport = useDataTransport();
   const query = useQuery({
     queryKey: ["me", session?.user.id],
-    queryFn: () => apiRequest<Me>("/v1/me"),
+    queryFn: () => transport.request<Me>("/v1/me"),
     enabled: Boolean(session),
   });
   const [selectedTenant, setTenantState] = useState<TenantRequest | undefined>(() => {

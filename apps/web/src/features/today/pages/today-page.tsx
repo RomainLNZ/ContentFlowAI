@@ -3,8 +3,9 @@ import { motion, useReducedMotion } from "framer-motion";
 import { ArrowRight, CalendarDays, FilePenLine, FolderKanban, RefreshCw, Sparkles } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useApplication } from "@/app/application-context";
+import { useDataTransport } from "@/app/data-transport-context";
 import { AppShell } from "@/components/app-shell";
-import { ApiError } from "@/lib/api-client";
+import { DataTransportError } from "@/lib/data-transport";
 import { RecommendationCard } from "../components/recommendation-card";
 import { TodaySkeleton } from "../components/today-skeleton";
 import {
@@ -20,6 +21,7 @@ import type { DirectorRecommendation } from "../today.types";
 
 export function TodayPage() {
   const { me, tenant } = useApplication();
+  const transport = useDataTransport();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const reduceMotion = useReducedMotion();
@@ -28,13 +30,13 @@ export function TodayPage() {
 
   const overview = useQuery({
     queryKey,
-    queryFn: () => getDirectorOverview(tenant!),
+    queryFn: () => getDirectorOverview(transport, tenant!),
     enabled: Boolean(tenant),
     refetchInterval: ({ state }) => (state.data?.state === "RUNNING" ? 2_500 : false),
   });
   const recent = useQuery({
     queryKey: recentKey,
-    queryFn: () => getRecentRecommendations(tenant!),
+    queryFn: () => getRecentRecommendations(transport, tenant!),
     enabled: Boolean(tenant),
   });
 
@@ -43,21 +45,21 @@ export function TodayPage() {
       queryClient.invalidateQueries({ queryKey }),
       queryClient.invalidateQueries({ queryKey: recentKey }),
     ]);
-  const run = useMutation({ mutationFn: () => runDirectorAnalysis(tenant!), onSuccess: refresh });
+  const run = useMutation({ mutationFn: () => runDirectorAnalysis(transport, tenant!), onSuccess: refresh });
   const view = useMutation({
-    mutationFn: (id: string) => markRecommendationViewed(tenant!, id),
+    mutationFn: (id: string) => markRecommendationViewed(transport, tenant!, id),
     onSuccess: refresh,
   });
   const accept = useMutation({
-    mutationFn: (id: string) => acceptRecommendation(tenant!, id),
+    mutationFn: (id: string) => acceptRecommendation(transport, tenant!, id),
     onSuccess: refresh,
   });
   const dismiss = useMutation({
-    mutationFn: (id: string) => dismissRecommendation(tenant!, id),
+    mutationFn: (id: string) => dismissRecommendation(transport, tenant!, id),
     onSuccess: refresh,
   });
   const prepare = useMutation({
-    mutationFn: (id: string) => prepareRecommendationDraft(tenant!, id),
+    mutationFn: (id: string) => prepareRecommendationDraft(transport, tenant!, id),
     onSuccess: (draft) => navigate("/app/create", { state: { preparedDraft: draft } }),
   });
 
@@ -343,7 +345,7 @@ function EmptyState({ busy, onRun }: { busy: boolean; onRun: () => void }) {
 }
 
 function ErrorState({ error, onRetry }: { error: Error; onRetry: () => void }) {
-  const disabled = error instanceof ApiError && error.code === "DIRECTOR_DISABLED";
+  const disabled = error instanceof DataTransportError && error.code === "DIRECTOR_DISABLED";
   return (
     <section role="alert" className="mt-12 rounded-3xl border border-rose-400/20 bg-rose-400/[0.06] p-8">
       <h2 className="text-xl font-semibold">

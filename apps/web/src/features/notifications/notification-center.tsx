@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Bell, CheckCheck, X } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useApplication } from "@/app/application-context";
-import { apiRequest } from "@/lib/api-client";
+import { useDataTransport } from "@/app/data-transport-context";
 
 type Notification = {
   id: string;
@@ -15,18 +15,19 @@ type Notification = {
 
 export function NotificationCenter() {
   const { tenant } = useApplication();
+  const transport = useDataTransport();
   const [open, setOpen] = useState(false);
   const [items, setItems] = useState<Notification[]>([]);
   const unread = items.filter((item) => !item.readAt).length;
   useEffect(() => {
     if (tenant)
-      void apiRequest<{ items: Notification[] }>("/v1/notifications", {}, tenant).then((data) =>
+      void transport.request<{ items: Notification[] }>("/v1/notifications", {}, tenant).then((data) =>
         setItems(data.items),
       );
-  }, [tenant]);
+  }, [tenant, transport]);
   async function readAll() {
     if (!tenant) return;
-    await apiRequest("/v1/notifications/read-all", { method: "POST" }, tenant);
+    await transport.request("/v1/notifications/read-all", { method: "POST" }, tenant);
     setItems((current) =>
       current.map((item) => ({ ...item, readAt: item.readAt || new Date().toISOString() })),
     );

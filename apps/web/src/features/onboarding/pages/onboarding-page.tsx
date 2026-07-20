@@ -1,8 +1,9 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { LoaderCircle } from "lucide-react";
-import { apiRequest, ApiError } from "@/lib/api-client";
+import { DataTransportError } from "@/lib/data-transport";
 import { useApplication } from "@/app/application-context";
+import { useDataTransport } from "@/app/data-transport-context";
 import { useAuth } from "@/features/auth/auth-context";
 import { normalizeWebsite, onboardingStepSchemas } from "../onboarding.schema";
 
@@ -87,6 +88,7 @@ const slugify = (value: string) =>
 export function OnboardingPage() {
   const navigate = useNavigate();
   const { me, refresh } = useApplication();
+  const transport = useDataTransport();
   const { user } = useAuth();
   const [step, setStep] = useState(1);
   const [draft, setDraft] = useState(initialDraft);
@@ -101,7 +103,7 @@ export function OnboardingPage() {
       navigate("/app", { replace: true });
       return;
     }
-    void apiRequest<{ currentStep: number; draft: unknown }>("/v1/onboarding")
+    void transport.request<{ currentStep: number; draft: unknown }>("/v1/onboarding")
       .then((progress) => {
         setStep(progress.currentStep);
         const organizationFromSignup =
@@ -121,7 +123,7 @@ export function OnboardingPage() {
       })
       .catch((cause: unknown) => setError(cause instanceof Error ? cause.message : "Chargement impossible."))
       .finally(() => setLoading(false));
-  }, [me?.user.onboardingDone, navigate, user?.user_metadata.organization_name]);
+  }, [me?.user.onboardingDone, navigate, transport, user?.user_metadata.organization_name]);
 
   const update = <Key extends keyof Draft>(key: Key, value: Draft[Key]) => {
     setDraft((current) => ({ ...current, [key]: value }));
@@ -153,7 +155,7 @@ export function OnboardingPage() {
     setSaving(true);
     setError(undefined);
     try {
-      await apiRequest("/v1/onboarding", {
+      await transport.request("/v1/onboarding", {
         method: "PUT",
         body: JSON.stringify({ currentStep: nextStep, draft }),
       });
@@ -178,7 +180,7 @@ export function OnboardingPage() {
     setSubmitting(true);
     setError(undefined);
     try {
-      await apiRequest("/v1/onboarding/complete", {
+      await transport.request("/v1/onboarding/complete", {
         method: "POST",
         body: JSON.stringify({
           organization: {
@@ -210,7 +212,7 @@ export function OnboardingPage() {
       await refresh();
       navigate("/app", { replace: true });
     } catch (cause) {
-      if (cause instanceof ApiError) {
+      if (cause instanceof DataTransportError) {
         setError(cause.message);
         const details = cause.details as { fields?: Array<{ field: string; message: string }> } | undefined;
         if (details?.fields) {

@@ -4,6 +4,7 @@ import { ToastProvider } from "@flowpilot/ui";
 import { ThemeProvider } from "./theme-provider";
 import { AuthProvider } from "@/features/auth/auth-context";
 import { ApplicationProvider } from "./application-context";
+import { DataTransportProvider } from "./data-transport-context";
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { staleTime: 30_000, retry: 1 }, mutations: { retry: 0 } },
@@ -15,7 +16,9 @@ export function AppProviders({ children }: { children: ReactNode }) {
       <QueryClientProvider client={queryClient}>
         <ToastProvider>
           <AuthProvider>
-            <ApplicationProvider>{children}</ApplicationProvider>
+            <DataTransportProvider>
+              <ApplicationProvider>{children}</ApplicationProvider>
+            </DataTransportProvider>
           </AuthProvider>
         </ToastProvider>
       </QueryClientProvider>

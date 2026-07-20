@@ -1,18 +1,9 @@
 import { env } from "@/lib/env";
 import { supabase } from "@/lib/supabase";
+import { DataTransportError, type TenantRequest } from "@/lib/data-transport";
 
-export type TenantRequest = { organizationId: string; workspaceId: string };
-
-export class ApiError extends Error {
-  constructor(
-    public readonly status: number,
-    public readonly code: string,
-    message: string,
-    public readonly details?: unknown,
-  ) {
-    super(message);
-  }
-}
+export { DataTransportError as ApiError } from "@/lib/data-transport";
+export type { TenantRequest } from "@/lib/data-transport";
 
 export async function apiRequest<T>(
   path: string,
@@ -21,7 +12,7 @@ export async function apiRequest<T>(
 ): Promise<T> {
   const { data } = await supabase.auth.getSession();
   const token = data.session?.access_token;
-  if (!token) throw new ApiError(401, "AUTH_REQUIRED", "Authentification requise.");
+  if (!token) throw new DataTransportError(401, "AUTH_REQUIRED", "Authentification requise.");
 
   const headers = new Headers(init.headers);
   headers.set("authorization", `Bearer ${token}`);
@@ -37,7 +28,7 @@ export async function apiRequest<T>(
     error?: { code: string; message: string; details?: unknown };
   };
   if (!response.ok || !payload.data) {
-    throw new ApiError(
+    throw new DataTransportError(
       response.status,
       payload.error?.code ?? "API_ERROR",
       payload.error?.message ?? "La requête a échoué.",
