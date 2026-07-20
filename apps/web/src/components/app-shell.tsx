@@ -1,12 +1,13 @@
 import type { ReactNode } from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { Home } from "lucide-react";
-import { supabase } from "@/lib/supabase";
 import { useApplication } from "@/app/application-context";
+import { useAuthentication } from "@/features/auth/auth-context";
 import { NotificationCenter } from "@/features/notifications/notification-center";
 
 export function AppShell({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
+  const authentication = useAuthentication();
   const { me } = useApplication();
   return (
     <div data-theme="dark" className="min-h-screen bg-[#08090c] text-zinc-100">
@@ -65,7 +66,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           <NotificationCenter />
           <button
             className="rounded-lg border border-white/10 px-3 py-2 text-sm transition hover:bg-white/[0.05]"
-            onClick={() => void supabase.auth.signOut().then(() => navigate("/sign-in"))}
+            onClick={() => void authentication.signOut().then(() => navigate("/sign-in"))}
           >
             Déconnexion
           </button>

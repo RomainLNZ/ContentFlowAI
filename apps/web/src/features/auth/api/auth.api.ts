@@ -1,14 +1,13 @@
-import { supabase } from "@/lib/supabase";
+import type { Authentication } from "@/lib/authentication";
 import {
   signUpSchema,
   type ForgotPasswordValues,
   type SignInValues,
   type SignUpValues,
 } from "../schemas/auth.schema";
-import { isSupabaseConfigured } from "@/lib/env";
 
-function requireSupabaseConfiguration() {
-  if (!isSupabaseConfigured) {
+function requireAuthenticationConfiguration(authentication: Authentication) {
+  if (!authentication.configured) {
     throw new Error("Supabase Auth n’est pas configuré pour cet environnement.");
   }
 }
@@ -25,30 +24,24 @@ export function authErrorMessage(error: unknown, action: "sign-in" | "sign-up") 
     : "Connexion impossible. Vérifiez vos identifiants.";
 }
 
-export async function signIn(values: SignInValues) {
-  requireSupabaseConfiguration();
-  const { error } = await supabase.auth.signInWithPassword(values);
-  if (error) throw error;
+export async function signIn(authentication: Authentication, values: SignInValues) {
+  requireAuthenticationConfiguration(authentication);
+  await authentication.signInWithPassword(values);
 }
 
-export async function signUp(values: SignUpValues) {
-  requireSupabaseConfiguration();
+export async function signUp(authentication: Authentication, values: SignUpValues) {
+  requireAuthenticationConfiguration(authentication);
   const validated = signUpSchema.parse(values);
-  const { error } = await supabase.auth.signUp({
+  await authentication.signUp({
     email: validated.email,
     password: validated.password,
-    options: {
-      data: { full_name: validated.fullName, organization_name: validated.organizationName },
-      emailRedirectTo: `${window.location.origin}/auth/callback`,
-    },
+    fullName: validated.fullName,
+    organizationName: validated.organizationName,
+    emailRedirectTo: `${window.location.origin}/auth/callback`,
   });
-  if (error) throw error;
 }
 
-export async function requestPasswordReset({ email }: ForgotPasswordValues) {
-  requireSupabaseConfiguration();
-  const { error } = await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: `${window.location.origin}/reset-password`,
-  });
-  if (error) throw error;
+export async function requestPasswordReset(authentication: Authentication, { email }: ForgotPasswordValues) {
+  requireAuthenticationConfiguration(authentication);
+  await authentication.requestPasswordReset(email, `${window.location.origin}/reset-password`);
 }

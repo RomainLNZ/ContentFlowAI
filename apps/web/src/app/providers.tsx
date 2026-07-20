@@ -5,6 +5,7 @@ import { ThemeProvider } from "./theme-provider";
 import { AuthProvider } from "@/features/auth/auth-context";
 import { ApplicationProvider } from "./application-context";
 import { DataTransportProvider } from "./data-transport-context";
+import { supabaseAuthentication } from "@/lib/supabase-authentication";
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { staleTime: 30_000, retry: 1 }, mutations: { retry: 0 } },
@@ -15,7 +16,7 @@ export function AppProviders({ children }: { children: ReactNode }) {
     <ThemeProvider>
       <QueryClientProvider client={queryClient}>
         <ToastProvider>
-          <AuthProvider>
+          <AuthProvider authentication={supabaseAuthentication}>
             <DataTransportProvider>
               <ApplicationProvider>{children}</ApplicationProvider>
             </DataTransportProvider>

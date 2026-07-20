@@ -107,8 +107,8 @@ export function OnboardingPage() {
       .then((progress) => {
         setStep(progress.currentStep);
         const organizationFromSignup =
-          typeof user?.user_metadata.organization_name === "string"
-            ? user.user_metadata.organization_name
+          typeof user?.userMetadata.organization_name === "string"
+            ? user.userMetadata.organization_name
             : "";
         if (progress.draft && typeof progress.draft === "object") {
           const saved = progress.draft as Partial<Draft>;
@@ -123,7 +123,7 @@ export function OnboardingPage() {
       })
       .catch((cause: unknown) => setError(cause instanceof Error ? cause.message : "Chargement impossible."))
       .finally(() => setLoading(false));
-  }, [me?.user.onboardingDone, navigate, transport, user?.user_metadata.organization_name]);
+  }, [me?.user.onboardingDone, navigate, transport, user?.userMetadata.organization_name]);
 
   const update = <Key extends keyof Draft>(key: Key, value: Draft[Key]) => {
     setDraft((current) => ({ ...current, [key]: value }));

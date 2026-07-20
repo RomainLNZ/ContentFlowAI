@@ -9,8 +9,10 @@ import { authErrorMessage, signUp } from "../api/auth.api";
 import { AuthShell } from "../components/auth-shell";
 import { FormField } from "../components/form-field";
 import { passwordStrength, signUpSchema, type SignUpValues } from "../schemas/auth.schema";
+import { useAuthentication } from "../auth-context";
 
 export function SignUpPage() {
+  const authentication = useAuthentication();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmation, setShowConfirmation] = useState(false);
   const form = useForm<SignUpValues>({
@@ -29,7 +31,7 @@ export function SignUpPage() {
   });
   const password = useWatch({ control: form.control, name: "password" });
   const strength = passwordStrength(password);
-  const mutation = useMutation({ mutationFn: signUp });
+  const mutation = useMutation({ mutationFn: (values: SignUpValues) => signUp(authentication, values) });
   if (mutation.isSuccess)
     return (
       <AuthShell>

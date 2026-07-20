@@ -1,8 +1,9 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "@/lib/supabase";
+import { useAuthentication } from "../auth-context";
 
 export function ResetPasswordPage() {
+  const authentication = useAuthentication();
   const navigate = useNavigate();
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string>();
@@ -11,17 +12,20 @@ export function ResetPasswordPage() {
 
   useEffect(() => {
     if (!code) return;
-    void supabase.auth.exchangeCodeForSession(code).then(({ error: exchangeError }) => {
-      if (exchangeError) setError(exchangeError.message);
-      else setReady(true);
-    });
-  }, [code]);
+    void authentication
+      .exchangeCodeForSession(code)
+      .then(() => setReady(true))
+      .catch((cause: unknown) => setError(cause instanceof Error ? cause.message : "Lien invalide."));
+  }, [authentication, code]);
 
   async function submit(event: FormEvent) {
     event.preventDefault();
-    const { error: updateError } = await supabase.auth.updateUser({ password });
-    if (updateError) setError(updateError.message);
-    else navigate("/app", { replace: true });
+    try {
+      await authentication.updatePassword(password);
+      navigate("/app", { replace: true });
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "Mise à jour impossible.");
+    }
   }
 
   return (

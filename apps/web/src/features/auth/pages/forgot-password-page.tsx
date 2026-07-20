@@ -8,13 +8,17 @@ import { requestPasswordReset } from "../api/auth.api";
 import { AuthShell } from "../components/auth-shell";
 import { FormField } from "../components/form-field";
 import { emailSchema, type ForgotPasswordValues } from "../schemas/auth.schema";
+import { useAuthentication } from "../auth-context";
 
 export function ForgotPasswordPage() {
+  const authentication = useAuthentication();
   const form = useForm<ForgotPasswordValues>({
     resolver: zodResolver(emailSchema),
     defaultValues: { email: "" },
   });
-  const mutation = useMutation({ mutationFn: requestPasswordReset });
+  const mutation = useMutation({
+    mutationFn: (values: ForgotPasswordValues) => requestPasswordReset(authentication, values),
+  });
   return (
     <AuthShell>
       <div className="rounded-3xl border border-white/[.08] bg-white/[.025] p-6 backdrop-blur-xl sm:p-9">

@@ -1,5 +1,4 @@
 import { env } from "@/lib/env";
-import { supabase } from "@/lib/supabase";
 import { DataTransportError, type TenantRequest } from "@/lib/data-transport";
 
 export { DataTransportError as ApiError } from "@/lib/data-transport";
@@ -9,13 +8,12 @@ export async function apiRequest<T>(
   path: string,
   init: RequestInit = {},
   tenant?: TenantRequest,
+  accessToken?: string,
 ): Promise<T> {
-  const { data } = await supabase.auth.getSession();
-  const token = data.session?.access_token;
-  if (!token) throw new DataTransportError(401, "AUTH_REQUIRED", "Authentification requise.");
+  if (!accessToken) throw new DataTransportError(401, "AUTH_REQUIRED", "Authentification requise.");
 
   const headers = new Headers(init.headers);
-  headers.set("authorization", `Bearer ${token}`);
+  headers.set("authorization", `Bearer ${accessToken}`);
   headers.set("content-type", "application/json");
   if (tenant) {
     headers.set("x-organization-id", tenant.organizationId);

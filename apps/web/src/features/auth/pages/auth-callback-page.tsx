@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "@/lib/supabase";
+import { useAuthentication } from "../auth-context";
 
 export function AuthCallbackPage() {
+  const authentication = useAuthentication();
   const navigate = useNavigate();
   const code = new URLSearchParams(window.location.search).get("code");
   const [error, setError] = useState<string | undefined>(() =>
@@ -11,11 +12,11 @@ export function AuthCallbackPage() {
 
   useEffect(() => {
     if (!code) return;
-    void supabase.auth.exchangeCodeForSession(code).then(({ error: exchangeError }) => {
-      if (exchangeError) setError(exchangeError.message);
-      else navigate("/app", { replace: true });
-    });
-  }, [code, navigate]);
+    void authentication
+      .exchangeCodeForSession(code)
+      .then(() => navigate("/app", { replace: true }))
+      .catch((cause: unknown) => setError(cause instanceof Error ? cause.message : "Lien invalide."));
+  }, [authentication, code, navigate]);
 
   return (
     <main className="grid min-h-screen place-items-center bg-[#08090c] px-6 text-zinc-200">

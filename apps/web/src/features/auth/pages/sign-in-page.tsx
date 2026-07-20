@@ -4,19 +4,23 @@ import { ArrowRight, LoaderCircle } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@flowpilot/ui";
-import { isSupabaseConfigured } from "@/lib/env";
+import { useAuthentication } from "../auth-context";
 import { authErrorMessage, signIn } from "../api/auth.api";
 import { AuthShell } from "../components/auth-shell";
 import { FormField } from "../components/form-field";
 import { signInSchema, type SignInValues } from "../schemas/auth.schema";
 
 export function SignInPage() {
+  const authentication = useAuthentication();
   const navigate = useNavigate();
   const form = useForm<SignInValues>({
     resolver: zodResolver(signInSchema),
     defaultValues: { email: "", password: "" },
   });
-  const mutation = useMutation({ mutationFn: signIn, onSuccess: () => navigate("/app") });
+  const mutation = useMutation({
+    mutationFn: (values: SignInValues) => signIn(authentication, values),
+    onSuccess: () => navigate("/app"),
+  });
 
   return (
     <AuthShell>
@@ -25,7 +29,7 @@ export function SignInPage() {
           <h2 className="text-2xl font-semibold tracking-tight">Heureux de vous revoir</h2>
           <p className="mt-2 text-sm text-zinc-500">Connectez-vous pour piloter votre communication.</p>
         </header>
-        {!isSupabaseConfigured && (
+        {!authentication.configured && (
           <p
             role="status"
             className="mt-5 rounded-xl border border-amber-300/10 bg-amber-300/[.06] p-3 text-xs text-amber-200"
