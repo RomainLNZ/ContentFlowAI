@@ -159,7 +159,10 @@ export function ContentStudioPage() {
           </div>
         )}
 
-        <Surface className="mt-8 overflow-hidden rounded-3xl bg-gradient-to-br from-white/[.055] to-white/[.025] shadow-[0_22px_80px_rgba(0,0,0,.22)]">
+        <Surface
+          data-tour="content-studio"
+          className="mt-8 overflow-hidden rounded-3xl bg-gradient-to-br from-white/[.055] to-white/[.025] shadow-[0_22px_80px_rgba(0,0,0,.22)]"
+        >
           <form onSubmit={generate} className="grid lg:grid-cols-[1.15fr_.85fr]">
             <div className="border-b border-white/[.08] p-5 sm:p-7 lg:border-b-0 lg:border-r">
               <div className="flex items-center gap-3">

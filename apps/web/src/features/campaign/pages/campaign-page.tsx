@@ -201,7 +201,7 @@ export function CampaignPage() {
           )}
         </AnimatePresence>
 
-        <section className="mt-8">
+        <section data-tour="campaigns" className="mt-8">
           {loading ? (
             <CampaignSkeleton />
           ) : error ? (

@@ -1,5 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
-import { render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { useEffect, useState } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { useDataTransport } from "@/app/data-transport-context";
@@ -76,5 +76,21 @@ describe("DemoProvider", () => {
     expect(createClient).not.toHaveBeenCalled();
     expect(sessionStorage.getItem("flowpilot-demo-mode")).toBe("active");
     fetchMock.mockRestore();
+  });
+
+  it("guide la découverte et permet de recommencer la visite", async () => {
+    window.history.replaceState({}, "", "/app");
+    render(
+      <DemoProvider>
+        <Probe />
+      </DemoProvider>,
+    );
+
+    expect(screen.getByText("Votre communication, enfin réunie au même endroit.")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: /^Commencer$/i }));
+    expect(screen.getByText("Commencez chaque journée avec les bonnes priorités.")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: /recommencer la visite/i }));
+    expect(screen.getByText("Votre communication, enfin réunie au même endroit.")).toBeInTheDocument();
   });
 });

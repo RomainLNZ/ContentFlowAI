@@ -141,7 +141,10 @@ export function CalendarPage() {
             Créer
           </button>
         </header>
-        <section className="mt-6 rounded-2xl border border-white/10 bg-white/[0.025] shadow-2xl shadow-black/20">
+        <section
+          data-tour="calendar"
+          className="mt-6 rounded-2xl border border-white/10 bg-white/[0.025] shadow-2xl shadow-black/20"
+        >
           <div className="flex flex-wrap items-center gap-2 border-b border-white/10 p-3">
             <button
               aria-label="Période précédente"

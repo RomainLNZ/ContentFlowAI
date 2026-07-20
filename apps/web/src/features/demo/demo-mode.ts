@@ -7,3 +7,9 @@ export function resolveDemoMode() {
   }
   return sessionStorage.getItem(DEMO_SESSION_KEY) === "active";
 }
+
+export function leaveDemo(destination: "/" | "/sign-up") {
+  sessionStorage.removeItem(DEMO_SESSION_KEY);
+  localStorage.removeItem("flowpilot-tenant");
+  window.location.assign(destination);
+}

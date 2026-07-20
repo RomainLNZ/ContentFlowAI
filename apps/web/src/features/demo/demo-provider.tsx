@@ -3,6 +3,7 @@ import { DataTransportProvider } from "@/app/data-transport-context";
 import { AuthProvider } from "@/features/auth/auth-context";
 import { DemoAuthentication } from "./demo-authentication";
 import { DemoDataTransport } from "./demo-data-transport";
+import { GuidedTour } from "./guided-tour";
 
 export function DemoProvider({ children }: { children: ReactNode }) {
   const [authentication] = useState(() => new DemoAuthentication());
@@ -10,7 +11,10 @@ export function DemoProvider({ children }: { children: ReactNode }) {
 
   return (
     <AuthProvider authentication={authentication}>
-      <DataTransportProvider transport={transport}>{children}</DataTransportProvider>
+      <DataTransportProvider transport={transport}>
+        {children}
+        <GuidedTour />
+      </DataTransportProvider>
     </AuthProvider>
   );
 }

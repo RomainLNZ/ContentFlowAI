@@ -117,7 +117,7 @@ export function ContentListPage() {
           </div>
         </Surface>
 
-        <section className="mt-7" aria-live="polite">
+        <section data-tour="content-library" className="mt-7" aria-live="polite">
           {loading ? (
             <ContentListSkeleton />
           ) : error ? (

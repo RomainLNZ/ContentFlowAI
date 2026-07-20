@@ -87,6 +87,7 @@ export function TodayPage() {
       <main className="relative isolate mx-auto max-w-7xl overflow-hidden px-4 pb-20 pt-10 sm:px-6 sm:pt-14">
         <div className="pointer-events-none absolute left-1/2 top-0 -z-10 h-96 w-[52rem] -translate-x-1/2 rounded-full bg-violet-600/10 blur-3xl" />
         <motion.header
+          data-tour="director"
           initial={reduceMotion ? false : { opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           className="flex flex-col justify-between gap-6 border-b border-white/10 pb-10 md:flex-row md:items-end"
