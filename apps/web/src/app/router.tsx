@@ -73,6 +73,7 @@ function LazyRoute({ children }: { children: ReactNode }) {
 }
 
 export const router = createBrowserRouter([
+  { path: "/demo", element: <Navigate to="/app" replace /> },
   {
     path: "/",
     element: (
