@@ -1,23 +1,22 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { motion, useReducedMotion } from "framer-motion";
-import { ArrowRight, CalendarDays, FilePenLine, FolderKanban, RefreshCw, Sparkles } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
+import { CheckCircle2, RefreshCw, Sparkles } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { useApplication } from "@/app/application-context";
 import { useDataTransport } from "@/app/data-transport-context";
 import { AppShell } from "@/components/app-shell";
 import { DataTransportError } from "@/lib/data-transport";
 import { RecommendationCard } from "../components/recommendation-card";
 import { TodaySkeleton } from "../components/today-skeleton";
+import { buildDirectorCards, type DirectorCardModel } from "../director-card.model";
 import {
   acceptRecommendation,
   dismissRecommendation,
   getDirectorOverview,
-  getRecentRecommendations,
   markRecommendationViewed,
   prepareRecommendationDraft,
   runDirectorAnalysis,
 } from "../today.api";
-import type { DirectorRecommendation } from "../today.types";
 
 export function TodayPage() {
   const { me, tenant } = useApplication();
@@ -26,7 +25,6 @@ export function TodayPage() {
   const queryClient = useQueryClient();
   const reduceMotion = useReducedMotion();
   const queryKey = ["director-overview", tenant?.organizationId, tenant?.workspaceId];
-  const recentKey = ["director-recommendations", tenant?.organizationId, tenant?.workspaceId];
 
   const overview = useQuery({
     queryKey,
@@ -34,17 +32,8 @@ export function TodayPage() {
     enabled: Boolean(tenant),
     refetchInterval: ({ state }) => (state.data?.state === "RUNNING" ? 2_500 : false),
   });
-  const recent = useQuery({
-    queryKey: recentKey,
-    queryFn: () => getRecentRecommendations(transport, tenant!),
-    enabled: Boolean(tenant),
-  });
 
-  const refresh = () =>
-    Promise.all([
-      queryClient.invalidateQueries({ queryKey }),
-      queryClient.invalidateQueries({ queryKey: recentKey }),
-    ]);
+  const refresh = () => queryClient.invalidateQueries({ queryKey });
   const run = useMutation({ mutationFn: () => runDirectorAnalysis(transport, tenant!), onSuccess: refresh });
   const view = useMutation({
     mutationFn: (id: string) => markRecommendationViewed(transport, tenant!, id),
@@ -63,7 +52,8 @@ export function TodayPage() {
     onSuccess: (draft) => navigate("/app/create", { state: { preparedDraft: draft } }),
   });
 
-  function action(recommendation: DirectorRecommendation) {
+  function action(card: DirectorCardModel) {
+    const recommendation = card.recommendation;
     if (recommendation.status === "NEW") view.mutate(recommendation.id);
     if (recommendation.contentId) return navigate(`/app/content/${recommendation.contentId}`);
     if (recommendation.campaignId) return navigate("/app/campaigns");
@@ -75,44 +65,55 @@ export function TodayPage() {
     accept.mutate(recommendation.id);
   }
 
+  const data = overview.data;
+  const cards = buildDirectorCards([
+    ...(data?.topRecommendations ?? []),
+    ...(data?.risks ?? []),
+    ...(data?.opportunities ?? []),
+  ]);
   const busyId =
     (accept.isPending && accept.variables) ||
     (dismiss.isPending && dismiss.variables) ||
     (prepare.isPending && prepare.variables);
   const firstName = me?.user.fullName?.trim().split(/\s+/)[0];
-  const data = overview.data;
 
   return (
     <AppShell>
-      <main className="relative isolate mx-auto max-w-7xl overflow-hidden px-4 pb-20 pt-10 sm:px-6 sm:pt-14">
-        <div className="pointer-events-none absolute left-1/2 top-0 -z-10 h-96 w-[52rem] -translate-x-1/2 rounded-full bg-violet-600/10 blur-3xl" />
+      <main className="relative isolate mx-auto min-h-[calc(100vh-65px)] max-w-6xl overflow-hidden px-4 pb-24 pt-10 sm:px-6 sm:pt-16">
+        <div className="pointer-events-none absolute left-1/2 top-0 -z-10 h-[32rem] w-[54rem] -translate-x-1/2 rounded-full bg-violet-600/[0.075] blur-[110px]" />
+        <div className="pointer-events-none absolute inset-x-0 top-0 -z-20 h-[32rem] bg-[linear-gradient(rgba(255,255,255,.022)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.022)_1px,transparent_1px)] bg-[size:52px_52px] [mask-image:linear-gradient(to_bottom,black,transparent)]" />
+
         <motion.header
           data-tour="director"
           initial={reduceMotion ? false : { opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
-          className="flex flex-col justify-between gap-6 border-b border-white/10 pb-10 md:flex-row md:items-end"
+          transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+          className="flex flex-col justify-between gap-8 md:flex-row md:items-start"
         >
           <div>
-            <p className="text-sm font-medium text-violet-300">
-              Aujourd’hui{firstName ? `, ${firstName}` : ""}
-            </p>
-            <h1 className="mt-3 max-w-3xl text-4xl font-semibold tracking-[-0.045em] text-white sm:text-5xl lg:text-6xl">
-              Voici ce qui mérite votre attention.
+            <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-violet-300">
+              <span className="relative flex size-2">
+                <span className="absolute inline-flex size-full animate-ping rounded-full bg-violet-400 opacity-40" />
+                <span className="relative inline-flex size-2 rounded-full bg-violet-400" />
+              </span>
+              Director IA
+            </div>
+            <h1 className="mt-6 text-4xl font-semibold tracking-[-0.045em] text-white sm:text-5xl">
+              Bonjour{firstName ? ` ${firstName}` : ""}.
             </h1>
-            <p className="mt-4 max-w-2xl text-base leading-7 text-zinc-400 sm:text-lg">
-              Votre Director a priorisé les prochains gestes utiles à votre communication.
+            <p className="mt-4 max-w-2xl text-lg leading-8 text-zinc-400 sm:text-xl">
+              {cards.length
+                ? `Aujourd’hui, voici ${countLabel(Math.min(cards.length, 3))} ayant le plus d’impact.`
+                : "Votre espace ne demande aucune intervention immédiate."}
             </p>
           </div>
           <button
             type="button"
             disabled={run.isPending || data?.state === "RUNNING" || !tenant}
             onClick={() => run.mutate()}
-            className="fp-focus inline-flex min-h-11 shrink-0 items-center justify-center gap-2 self-start rounded-xl border border-white/10 bg-white/[0.05] px-4 text-sm font-medium text-zinc-200 transition hover:bg-white/10 disabled:cursor-wait disabled:opacity-50 md:self-auto"
+            className="fp-focus inline-flex min-h-11 shrink-0 items-center justify-center gap-2 self-start rounded-xl border border-white/10 bg-white/[0.045] px-4 text-sm font-medium text-zinc-300 transition duration-300 hover:border-white/15 hover:bg-white/[0.075] hover:text-white disabled:cursor-wait disabled:opacity-50"
           >
-            <RefreshCw
-              size={16}
-              className={run.isPending || data?.state === "RUNNING" ? "animate-spin" : ""}
-            />
+            <RefreshCw size={15} className={run.isPending || data?.state === "RUNNING" ? "animate-spin" : ""} />
             {data?.state === "RUNNING" ? "Analyse en cours…" : "Actualiser l’analyse"}
           </button>
         </motion.header>
@@ -122,226 +123,101 @@ export function TodayPage() {
         ) : overview.isError ? (
           <ErrorState error={overview.error} onRetry={() => void overview.refetch()} />
         ) : !data?.analysis && data?.state !== "RUNNING" ? (
-          <EmptyState busy={run.isPending} onRun={() => run.mutate()} />
-        ) : data?.state === "RUNNING" && !data.topRecommendations.length ? (
+          <FirstAnalysisState busy={run.isPending} onRun={() => run.mutate()} />
+        ) : data?.state === "RUNNING" && !cards.length ? (
           <TodaySkeleton label="Le Director examine votre espace…" />
-        ) : (
+        ) : cards.length ? (
           <>
-            <section aria-labelledby="priorities-title" className="mt-12">
-              <SectionHeading
-                id="priorities-title"
-                eyebrow="Votre cap"
-                title="Les trois priorités du jour"
-                detail={freshnessLabel(data?.freshness.state, data?.freshness.ageSeconds)}
-              />
-              <div className="mt-6 grid gap-5">
-                {data?.topRecommendations.slice(0, 3).map((recommendation, index) => (
-                  <RecommendationCard
-                    key={recommendation.id}
-                    recommendation={recommendation}
-                    rank={index + 1}
-                    busy={busyId === recommendation.id}
-                    onView={({ id }) => view.mutate(id)}
-                    onAccept={({ id }) => accept.mutate(id)}
-                    onDismiss={({ id }) => dismiss.mutate(id)}
-                    onAction={action}
-                  />
-                ))}
-              </div>
-            </section>
-
-            <div className="mt-16 grid gap-12 lg:grid-cols-2">
-              <RecommendationSection
-                id="opportunities-title"
-                eyebrow="À saisir"
-                title="Opportunités"
-                empty="Aucune opportunité urgente. Votre plan est cohérent."
-                items={data?.opportunities ?? []}
-                busyId={busyId}
-                onView={(id) => view.mutate(id)}
-                onAccept={(id) => accept.mutate(id)}
-                onDismiss={(id) => dismiss.mutate(id)}
-                onAction={action}
-              />
-              <RecommendationSection
-                id="risks-title"
-                eyebrow="À surveiller"
-                title="Risques"
-                empty="Aucun risque significatif détecté aujourd’hui."
-                items={data?.risks ?? []}
-                busyId={busyId}
-                onView={(id) => view.mutate(id)}
-                onAccept={(id) => accept.mutate(id)}
-                onDismiss={(id) => dismiss.mutate(id)}
-                onAction={action}
-              />
+            <div className="mt-10 flex flex-wrap items-center gap-x-5 gap-y-2 border-y border-white/[0.07] py-3 text-xs text-zinc-500">
+              <span>{freshnessLabel(data?.freshness.state, data?.freshness.ageSeconds)}</span>
+              <span className="hidden size-1 rounded-full bg-zinc-700 sm:block" />
+              <span>{cards.length} signal{cards.length > 1 ? "s" : ""} utile{cards.length > 1 ? "s" : ""}</span>
+              <span className="hidden size-1 rounded-full bg-zinc-700 sm:block" />
+              <span>Classés par impact et urgence</span>
             </div>
 
-            <section aria-labelledby="recent-title" className="mt-16">
-              <SectionHeading id="recent-title" eyebrow="Historique" title="Recommandations récentes" />
-              <div className="mt-5 divide-y divide-white/10 overflow-hidden rounded-2xl border border-white/10 bg-white/[0.025]">
-                {(recent.data?.items ?? []).slice(0, 6).map((item) => (
-                  <button
-                    key={item.id}
-                    type="button"
-                    onClick={() => action(item)}
-                    className="fp-focus flex w-full items-center gap-4 px-5 py-4 text-left transition hover:bg-white/[0.04]"
-                  >
-                    <span className="size-2 shrink-0 rounded-full bg-violet-400" />
-                    <span className="min-w-0 flex-1">
-                      <span className="block truncate font-medium text-zinc-100">{item.title}</span>
-                      <span className="mt-1 block truncate text-sm text-zinc-500">{item.summary}</span>
-                    </span>
-                    <span className="hidden text-xs uppercase tracking-wider text-zinc-500 sm:block">
-                      {Math.round(Number(item.confidence) * 100)}% confiance
-                    </span>
-                    <ArrowRight size={16} className="shrink-0 text-zinc-500" />
-                  </button>
-                ))}
-                {!recent.isLoading && !recent.data?.items.length && (
-                  <p className="px-5 py-8 text-sm text-zinc-500">Aucune recommandation récente.</p>
-                )}
-              </div>
+            <section aria-label="Actions prioritaires" className="mt-8">
+              <RecommendationCard
+                card={cards[0]!}
+                featured
+                busy={busyId === cards[0]!.recommendation.id}
+                onDismiss={(id) => dismiss.mutate(id)}
+                onAction={action}
+              />
+              {cards.length > 1 && (
+                <div className="mt-5 grid gap-5 lg:grid-cols-2">
+                  {cards.slice(1, 3).map((card, index) => (
+                    <RecommendationCard
+                      key={card.recommendation.id}
+                      card={card}
+                      index={index + 1}
+                      busy={busyId === card.recommendation.id}
+                      onDismiss={(id) => dismiss.mutate(id)}
+                      onAction={action}
+                    />
+                  ))}
+                </div>
+              )}
             </section>
 
-            <QuickActions onRefresh={() => run.mutate()} busy={run.isPending} />
+            {cards.length > 3 && (
+              <section aria-labelledby="other-signals" className="mt-14 border-t border-white/[0.07] pt-10">
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-zinc-500">À garder en vue</p>
+                <h2 id="other-signals" className="mt-2 text-2xl font-semibold tracking-tight text-zinc-100">
+                  Signaux secondaires
+                </h2>
+                <div className="mt-5 grid gap-5 lg:grid-cols-2">
+                  {cards.slice(3, 5).map((card, index) => (
+                    <RecommendationCard
+                      key={card.recommendation.id}
+                      card={card}
+                      index={index + 3}
+                      busy={busyId === card.recommendation.id}
+                      onDismiss={(id) => dismiss.mutate(id)}
+                      onAction={action}
+                    />
+                  ))}
+                </div>
+              </section>
+            )}
           </>
+        ) : (
+          <ClearState onRefresh={() => run.mutate()} busy={run.isPending} />
         )}
       </main>
     </AppShell>
   );
 }
 
-function SectionHeading({
-  id,
-  eyebrow,
-  title,
-  detail,
-}: {
-  id: string;
-  eyebrow: string;
-  title: string;
-  detail?: string;
-}) {
+function FirstAnalysisState({ busy, onRun }: { busy: boolean; onRun: () => void }) {
   return (
-    <div className="flex flex-wrap items-end justify-between gap-3">
-      <div>
-        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-violet-400">{eyebrow}</p>
-        <h2 id={id} className="mt-2 text-2xl font-semibold tracking-tight text-zinc-100 sm:text-3xl">
-          {title}
-        </h2>
-      </div>
-      {detail && <p className="text-sm text-zinc-500">{detail}</p>}
-    </div>
-  );
-}
-
-type RecommendationSectionProps = {
-  id: string;
-  eyebrow: string;
-  title: string;
-  empty: string;
-  items: DirectorRecommendation[];
-  busyId?: string | false;
-  onView: (id: string) => void;
-  onAccept: (id: string) => void;
-  onDismiss: (id: string) => void;
-  onAction: (item: DirectorRecommendation) => void;
-};
-
-function RecommendationSection({
-  id,
-  eyebrow,
-  title,
-  empty,
-  items,
-  busyId,
-  onView,
-  onAccept,
-  onDismiss,
-  onAction,
-}: RecommendationSectionProps) {
-  return (
-    <section aria-labelledby={id}>
-      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-violet-400">{eyebrow}</p>
-      <h2 id={id} className="mt-2 text-2xl font-semibold tracking-tight">
-        {title}
-      </h2>
-      <div className="mt-5 space-y-4">
-        {items.slice(0, 3).map((item) => (
-          <RecommendationCard
-            key={item.id}
-            recommendation={item}
-            compact
-            busy={busyId === item.id}
-            onView={({ id: recommendationId }) => onView(recommendationId)}
-            onAccept={({ id: recommendationId }) => onAccept(recommendationId)}
-            onDismiss={({ id: recommendationId }) => onDismiss(recommendationId)}
-            onAction={onAction}
-          />
-        ))}
-        {!items.length && (
-          <p className="rounded-2xl border border-dashed border-white/10 p-6 text-sm text-zinc-500">
-            {empty}
-          </p>
-        )}
-      </div>
-    </section>
-  );
-}
-
-function QuickActions({ onRefresh, busy }: { onRefresh: () => void; busy: boolean }) {
-  const actions = [
-    { to: "/app/create", label: "Créer un contenu", icon: FilePenLine },
-    { to: "/app/calendar", label: "Planifier la semaine", icon: CalendarDays },
-    { to: "/app/campaigns", label: "Voir les campagnes", icon: FolderKanban },
-  ];
-  return (
-    <section aria-labelledby="quick-actions-title" className="mt-16 border-t border-white/10 pt-10">
-      <SectionHeading id="quick-actions-title" eyebrow="Passer à l’action" title="Actions rapides" />
-      <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        {actions.map(({ to, label, icon: Icon }) => (
-          <Link
-            key={to}
-            to={to}
-            className="fp-focus flex min-h-24 items-center justify-between rounded-2xl border border-white/10 bg-white/[0.03] p-5 font-medium transition hover:-translate-y-0.5 hover:bg-white/[0.06]"
-          >
-            <span>{label}</span>
-            <Icon size={19} className="text-violet-300" />
-          </Link>
-        ))}
-        <button
-          type="button"
-          disabled={busy}
-          onClick={onRefresh}
-          className="fp-focus flex min-h-24 items-center justify-between rounded-2xl border border-white/10 bg-white/[0.03] p-5 text-left font-medium transition hover:-translate-y-0.5 hover:bg-white/[0.06] disabled:opacity-50"
-        >
-          <span>Relancer le Director</span>
-          <Sparkles size={19} className="text-violet-300" />
-        </button>
-      </div>
-    </section>
-  );
-}
-
-function EmptyState({ busy, onRun }: { busy: boolean; onRun: () => void }) {
-  return (
-    <section className="mt-12 rounded-3xl border border-white/10 bg-white/[0.03] px-6 py-14 text-center sm:px-12">
+    <section className="mt-12 rounded-[28px] border border-white/10 bg-white/[0.025] px-6 py-16 text-center shadow-[0_24px_80px_rgba(0,0,0,.2)] sm:px-12">
       <Sparkles className="mx-auto text-violet-300" />
-      <h2 className="mt-5 text-2xl font-semibold">Votre première analyse est prête à commencer.</h2>
-      <p className="mx-auto mt-3 max-w-xl text-zinc-400">
-        Le Director étudiera uniquement les faits de votre espace pour faire ressortir vos prochaines
-        priorités.
+      <h2 className="mt-5 text-2xl font-semibold">Votre première analyse est prête.</h2>
+      <p className="mx-auto mt-3 max-w-xl leading-7 text-zinc-400">
+        Le Director étudiera les faits de votre espace et fera ressortir uniquement les actions utiles.
       </p>
-      <button
-        type="button"
-        disabled={busy}
-        onClick={onRun}
-        className="fp-focus mt-7 rounded-xl bg-zinc-50 px-5 py-3 font-semibold text-zinc-950 disabled:opacity-50"
-      >
+      <button type="button" disabled={busy} onClick={onRun} className="fp-focus mt-7 rounded-xl bg-zinc-50 px-5 py-3 font-semibold text-zinc-950 transition hover:-translate-y-0.5 hover:bg-white disabled:opacity-50">
         {busy ? "Analyse en cours…" : "Analyser mon espace"}
       </button>
     </section>
+  );
+}
+
+function ClearState({ busy, onRefresh }: { busy: boolean; onRefresh: () => void }) {
+  return (
+    <motion.section initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="mt-12 rounded-[28px] border border-emerald-300/15 bg-emerald-300/[0.035] px-6 py-16 text-center shadow-[0_24px_80px_rgba(0,0,0,.2)] sm:px-12">
+      <span className="mx-auto grid size-12 place-items-center rounded-2xl border border-emerald-300/15 bg-emerald-300/[0.07] text-emerald-200">
+        <CheckCircle2 size={21} />
+      </span>
+      <h2 className="mt-6 text-2xl font-semibold tracking-tight text-zinc-50">Tout est sous contrôle.</h2>
+      <p className="mx-auto mt-3 max-w-lg leading-7 text-zinc-400">
+        Aucun signal ne nécessite votre attention pour le moment. Le Director continue de surveiller votre espace.
+      </p>
+      <button type="button" disabled={busy} onClick={onRefresh} className="fp-focus mt-7 inline-flex min-h-11 items-center gap-2 rounded-xl border border-white/10 bg-white/[0.05] px-4 text-sm font-medium transition hover:bg-white/[0.08] disabled:opacity-50">
+        <RefreshCw size={15} /> Relancer l’analyse
+      </button>
+    </motion.section>
   );
 }
 
@@ -349,31 +225,24 @@ function ErrorState({ error, onRetry }: { error: Error; onRetry: () => void }) {
   const disabled = error instanceof DataTransportError && error.code === "DIRECTOR_DISABLED";
   return (
     <section role="alert" className="mt-12 rounded-3xl border border-rose-400/20 bg-rose-400/[0.06] p-8">
-      <h2 className="text-xl font-semibold">
-        {disabled
-          ? "Le Director n’est pas activé pour cet espace."
-          : "Le Director n’a pas pu charger votre briefing."}
-      </h2>
+      <h2 className="text-xl font-semibold">{disabled ? "Le Director n’est pas activé pour cet espace." : "Le Director n’a pas pu charger votre briefing."}</h2>
       <p className="mt-2 text-sm text-zinc-400">{error.message}</p>
-      {!disabled && (
-        <button
-          type="button"
-          onClick={onRetry}
-          className="fp-focus mt-5 rounded-xl border border-white/10 px-4 py-2 text-sm"
-        >
-          Réessayer
-        </button>
-      )}
+      {!disabled && <button type="button" onClick={onRetry} className="fp-focus mt-5 rounded-xl border border-white/10 px-4 py-2 text-sm">Réessayer</button>}
     </section>
   );
 }
 
+function countLabel(count: number) {
+  if (count === 1) return "l’action";
+  if (count === 2) return "les deux actions";
+  return "les trois actions";
+}
+
 function freshnessLabel(state?: string, ageSeconds?: number | null) {
   if (state === "NONE") return "Aucune analyse disponible";
-  if (ageSeconds == null) return undefined;
+  if (ageSeconds == null) return "Analyse disponible";
   const minutes = Math.floor(ageSeconds / 60);
-  if (minutes < 1) return "Analyse mise à jour à l’instant";
-  if (minutes < 60) return `Analyse mise à jour il y a ${minutes} min`;
-  const hours = Math.floor(minutes / 60);
-  return `Analyse mise à jour il y a ${hours} h`;
+  if (minutes < 1) return "Mis à jour à l’instant";
+  if (minutes < 60) return `Mis à jour il y a ${minutes} min`;
+  return `Mis à jour il y a ${Math.floor(minutes / 60)} h`;
 }

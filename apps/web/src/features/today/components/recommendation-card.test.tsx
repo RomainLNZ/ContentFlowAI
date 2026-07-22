@@ -1,83 +1,55 @@
 import { fireEvent, render, screen } from "@testing-library/react";
-import { beforeAll, describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+import { buildDirectorCards } from "../director-card.model";
 import type { DirectorRecommendation } from "../today.types";
 import { RecommendationCard } from "./recommendation-card";
 
 const recommendation: DirectorRecommendation = {
   id: "recommendation-1",
-  type: "EDITORIAL_GAP",
+  type: "CALENDAR_SUGGESTION",
   status: "NEW",
   priority: "HIGH",
   confidence: 0.91,
-  title: "Reprendre la parole cette semaine",
-  summary: "Vous n’avez rien publié depuis huit jours.",
-  rationale: "Votre cadence cible n’est plus respectée.",
-  evidence: { facts: ["Dernière publication il y a 8 jours", "Cadence cible : 3 par semaine"] },
-  suggestedAction: null,
+  title: "Renforcez le milieu de semaine",
+  summary: "Aucun contenu n’est prévu mercredi.",
+  rationale: "Le calendrier présente un intervalle de cinq jours.",
+  evidence: { facts: ["Mercredi est vide"] },
+  suggestedAction: { label: "Planifier un contenu" },
   campaignId: null,
   contentId: null,
   objectiveType: null,
   suggestedAt: null,
   expiresAt: null,
-  createdAt: "2026-07-15T08:00:00.000Z",
+  createdAt: new Date().toISOString(),
 };
 
-beforeAll(() => {
-  Object.defineProperty(window, "matchMedia", {
-    writable: true,
-    value: vi.fn().mockImplementation((query: string) => ({
-      matches: false,
-      media: query,
-      onchange: null,
-      addEventListener: vi.fn(),
-      removeEventListener: vi.fn(),
-      addListener: vi.fn(),
-      removeListener: vi.fn(),
-      dispatchEvent: vi.fn(),
-    })),
-  });
-});
-
 describe("RecommendationCard", () => {
-  it("explique la recommandation et signale sa lecture", () => {
-    const onView = vi.fn();
+  it("affiche la raison et déclenche l’action contextuelle", () => {
+    const onAction = vi.fn();
+    const card = buildDirectorCards([recommendation])[0]!;
+
     render(
       <RecommendationCard
-        recommendation={recommendation}
-        onView={onView}
-        onAccept={vi.fn()}
+        card={card}
+        onAction={onAction}
         onDismiss={vi.fn()}
-        onAction={vi.fn()}
       />,
     );
 
-    fireEvent.click(screen.getByRole("button", { name: /pourquoi/i }));
-
-    expect(screen.getByText("Dernière publication il y a 8 jours")).toBeInTheDocument();
-    expect(screen.getByText("91%")).toBeInTheDocument();
-    expect(onView).toHaveBeenCalledWith(recommendation);
+    expect(screen.getByText("Pourquoi maintenant")).toBeInTheDocument();
+    expect(screen.getByText(recommendation.rationale)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Planifier un contenu" }));
+    expect(onAction).toHaveBeenCalledWith(card);
   });
 
-  it("rend les actions principales immédiatement accessibles", () => {
-    const onAction = vi.fn();
-    const onAccept = vi.fn();
+  it("permet d’ignorer le signal sans masquer son explication", () => {
     const onDismiss = vi.fn();
-    render(
-      <RecommendationCard
-        recommendation={recommendation}
-        onView={vi.fn()}
-        onAccept={onAccept}
-        onDismiss={onDismiss}
-        onAction={onAction}
-      />,
-    );
+    const card = buildDirectorCards([recommendation])[0]!;
 
-    fireEvent.click(screen.getByRole("button", { name: /traiter maintenant/i }));
-    fireEvent.click(screen.getByRole("button", { name: /^accepter$/i }));
-    fireEvent.click(screen.getByRole("button", { name: /ignorer cette recommandation/i }));
+    render(<RecommendationCard card={card} onAction={vi.fn()} onDismiss={onDismiss} />);
 
-    expect(onAction).toHaveBeenCalledWith(recommendation);
-    expect(onAccept).toHaveBeenCalledWith(recommendation);
-    expect(onDismiss).toHaveBeenCalledWith(recommendation);
+    fireEvent.click(screen.getByRole("button", { name: "Ignorer cette recommandation" }));
+    expect(onDismiss).toHaveBeenCalledWith(recommendation.id);
+    expect(screen.getByText(recommendation.rationale)).toBeInTheDocument();
   });
 });

@@ -80,6 +80,328 @@ input {
   outline-offset: 3px;
 }
 
+/* Marketing art direction */
+.marketing-page {
+  position: relative;
+  isolation: isolate;
+  background:
+    radial-gradient(circle at 50% -8%, rgba(124, 58, 237, 0.11), transparent 28rem),
+    linear-gradient(180deg, #fafaf7 0%, var(--canvas) 19%, var(--canvas) 100%);
+}
+
+.marketing-header {
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.72) inset,
+    0 10px 35px rgba(24, 18, 44, 0.035);
+}
+
+.marketing-nav-link {
+  position: relative;
+  transition:
+    color 420ms cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 420ms cubic-bezier(0.22, 1, 0.36, 1),
+    text-shadow 420ms ease,
+    transform 420ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.marketing-nav-link:hover {
+  transform: translateY(-1.5px);
+  text-shadow: 0 5px 18px rgba(109, 74, 255, 0.16);
+}
+
+.marketing-nav-link[aria-current="page"] {
+  text-shadow: 0 5px 20px rgba(109, 74, 255, 0.2);
+}
+
+.marketing-hero {
+  position: relative;
+  isolation: isolate;
+  min-height: 820px;
+}
+
+.marketing-hero::before {
+  position: absolute;
+  z-index: -2;
+  inset: 0;
+  content: "";
+  background-image:
+    linear-gradient(rgba(35, 25, 66, 0.032) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(35, 25, 66, 0.032) 1px, transparent 1px);
+  background-size: 60px 60px;
+  mask-image: radial-gradient(ellipse 76% 78% at 50% 28%, black 0%, rgba(0, 0, 0, 0.66) 48%, transparent 88%);
+}
+
+.marketing-hero::after {
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  content: "";
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 40% 31% at 31% 20%, rgba(124, 58, 237, 0.2), transparent 74%),
+    radial-gradient(ellipse 38% 29% at 70% 24%, rgba(236, 72, 153, 0.13), transparent 74%),
+    radial-gradient(ellipse 54% 30% at 50% 73%, rgba(109, 74, 255, 0.18), transparent 76%);
+  filter: blur(24px);
+  transform: translate3d(0, 0, 0) scale(1.02);
+  animation: marketing-glow-drift 10s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+}
+
+.marketing-hero > div {
+  position: relative;
+  z-index: 1;
+}
+
+.marketing-hero h1 {
+  position: relative;
+  isolation: isolate;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.85), 0 18px 50px rgba(24, 18, 44, 0.1);
+}
+
+.marketing-hero h1::before {
+  position: absolute;
+  z-index: -1;
+  inset: -52px -100px -42px;
+  content: "";
+  pointer-events: none;
+  background: radial-gradient(ellipse at center, rgba(126, 73, 255, 0.18), rgba(200, 94, 255, 0.075) 44%, transparent 73%);
+  filter: blur(42px);
+  opacity: 0.9;
+  animation: marketing-title-breathe 10s ease-in-out infinite;
+}
+
+.marketing-gradient-text {
+  color: transparent;
+  background: linear-gradient(100deg, #6d28d9 0%, #7c3aed 38%, #a855f7 66%, #db2777 118%);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: none;
+  filter: drop-shadow(0 10px 28px rgba(124, 58, 237, 0.18));
+}
+
+.marketing-product-stage {
+  position: relative;
+  perspective: 1400px;
+  transform: translate3d(0, 0, 0);
+  animation: marketing-product-float 12s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+}
+
+.marketing-product-stage::before {
+  position: absolute;
+  inset: -18% 6% -10%;
+  z-index: -1;
+  content: "";
+  pointer-events: none;
+  border-radius: 50%;
+  background: radial-gradient(ellipse, rgba(109, 74, 255, 0.28), rgba(236, 72, 153, 0.09) 43%, transparent 73%);
+  filter: blur(56px);
+  opacity: 0.88;
+}
+
+.marketing-product-stage::after {
+  position: absolute;
+  z-index: -1;
+  right: 12%;
+  bottom: -34px;
+  left: 12%;
+  height: 74px;
+  content: "";
+  pointer-events: none;
+  border-radius: 50%;
+  background: radial-gradient(ellipse, rgba(28, 17, 56, 0.22), rgba(109, 74, 255, 0.12) 38%, transparent 72%);
+  filter: blur(28px);
+}
+
+.marketing-product-shot {
+  position: relative;
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.2) inset,
+    0 0 0 1px rgba(255, 255, 255, 0.06),
+    0 22px 44px rgba(18, 10, 39, 0.16),
+    0 48px 100px rgba(36, 18, 78, 0.16),
+    0 90px 180px rgba(89, 48, 170, 0.12);
+  transition:
+    transform 700ms cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 700ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.marketing-product-stage .marketing-product-shot {
+  transform: rotateX(1.5deg) translateZ(0);
+}
+
+.marketing-product-stage:hover .marketing-product-shot {
+  transform: rotateX(0deg) translateY(-4px) scale(1.002);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.18) inset,
+    0 0 0 1px rgba(255, 255, 255, 0.08),
+    0 40px 85px rgba(21, 12, 44, 0.2),
+    0 85px 170px rgba(74, 39, 145, 0.17);
+}
+
+.marketing-link,
+.marketing-secondary-cta {
+  transition:
+    color 500ms cubic-bezier(0.16, 1, 0.3, 1),
+    background-color 500ms cubic-bezier(0.16, 1, 0.3, 1),
+    border-color 500ms cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 500ms cubic-bezier(0.16, 1, 0.3, 1),
+    transform 500ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.marketing-primary-cta {
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.16) inset,
+    0 10px 24px rgba(25, 20, 38, 0.13);
+}
+
+.marketing-primary-cta:hover {
+  transform: translateY(-2px) scale(1.012);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.2) inset,
+    0 16px 36px rgba(76, 39, 151, 0.2);
+}
+
+.marketing-primary-cta:active,
+.marketing-secondary-cta:active {
+  transform: translateY(0) scale(0.985);
+  transition-duration: 120ms;
+}
+
+.marketing-secondary-cta:hover {
+  transform: translateY(-2px);
+  border-color: rgba(124, 58, 237, 0.23);
+  box-shadow: 0 12px 30px rgba(52, 31, 95, 0.1);
+}
+
+.marketing-section {
+  position: relative;
+}
+
+.marketing-section::before {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: min(78vw, 900px);
+  height: 1px;
+  content: "";
+  transform: translateX(-50%);
+  background: linear-gradient(90deg, transparent, rgba(124, 58, 237, 0.2), transparent);
+}
+
+.marketing-difference {
+  background:
+    radial-gradient(circle at 80% 8%, rgba(124, 58, 237, 0.08), transparent 27rem),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(247, 246, 252, 0.88));
+}
+
+.marketing-feature-panel,
+.marketing-pricing-card,
+.marketing-faq-card {
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.9) inset,
+    0 18px 55px rgba(27, 20, 52, 0.065);
+}
+
+.marketing-pricing-card,
+.marketing-faq-card {
+  transition: transform 300ms cubic-bezier(0.22, 1, 0.36, 1), box-shadow 300ms ease, border-color 300ms ease;
+}
+
+.marketing-pricing-card:hover {
+  transform: translateY(-6px);
+  border-color: rgba(124, 58, 237, 0.25);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.92) inset,
+    0 26px 70px rgba(62, 38, 112, 0.12);
+}
+
+.marketing-faq-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 18px 48px rgba(62, 38, 112, 0.09);
+}
+
+.marketing-dark-section {
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 18% 0%, rgba(124, 58, 237, 0.24), transparent 30rem),
+    radial-gradient(circle at 88% 100%, rgba(219, 39, 119, 0.12), transparent 28rem),
+    linear-gradient(145deg, #0b0b11, #12101d 52%, #09090d);
+  box-shadow: inset 0 1px rgba(255, 255, 255, 0.08), inset 0 -1px rgba(255, 255, 255, 0.05);
+}
+
+.marketing-dark-section::after {
+  position: absolute;
+  inset: 0;
+  content: "";
+  pointer-events: none;
+  background-image: linear-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
+  background-size: 64px 64px;
+  mask-image: linear-gradient(90deg, transparent, black 35%, black 65%, transparent);
+}
+
+.marketing-cta-panel {
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 10% 0%, rgba(139, 92, 246, 0.38), transparent 24rem),
+    radial-gradient(circle at 88% 110%, rgba(219, 39, 119, 0.24), transparent 26rem),
+    #17151e;
+  box-shadow: 0 30px 90px rgba(34, 19, 66, 0.2), inset 0 1px rgba(255, 255, 255, 0.12);
+}
+
+@keyframes marketing-glow-drift {
+  0%,
+  100% {
+    opacity: 0.62;
+    transform: translate3d(-0.35%, -0.2%, 0) scale(0.98);
+    filter: blur(34px);
+  }
+  50% {
+    opacity: 1;
+    transform: translate3d(0.35%, 0.25%, 0) scale(1.07);
+    filter: blur(20px);
+  }
+}
+
+@keyframes marketing-title-breathe {
+  0%,
+  100% {
+    opacity: 0.62;
+    transform: scale(0.95);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.06);
+  }
+}
+
+@keyframes marketing-product-float {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+  50% {
+    transform: translate3d(0, -5px, 0);
+  }
+}
+
+@media (max-width: 639px) {
+  .marketing-hero {
+    min-height: auto;
+  }
+
+  .marketing-hero::before {
+    background-size: 40px 40px;
+    opacity: 0.72;
+  }
+
+  .marketing-hero::after {
+    background:
+      radial-gradient(ellipse 72% 22% at 50% 20%, rgba(124, 58, 237, 0.15), transparent 75%),
+      radial-gradient(ellipse 70% 20% at 50% 78%, rgba(109, 74, 255, 0.13), transparent 75%);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

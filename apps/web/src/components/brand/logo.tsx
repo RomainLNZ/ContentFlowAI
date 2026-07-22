@@ -10,7 +10,7 @@ export function Logo({ inverse = false }: { inverse?: boolean }) {
         <Sparkles className="relative size-4" aria-hidden="true" />
       </span>
       <span>
-        Communication<span className="font-normal text-violet-500">OS</span>
+        Flow<span className="font-normal text-violet-500">Pilot</span>
       </span>
     </div>
   );

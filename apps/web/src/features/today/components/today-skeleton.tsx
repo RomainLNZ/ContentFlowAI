@@ -1,15 +1,14 @@
 export function TodaySkeleton({ label = "Chargement de votre briefing" }: { label?: string }) {
   return (
-    <div role="status" aria-label={label} className="animate-pulse space-y-8">
-      <div className="space-y-4 py-8">
-        <div className="h-4 w-32 rounded-full bg-white/10" />
-        <div className="h-12 max-w-2xl rounded-2xl bg-white/[0.08]" />
-        <div className="h-5 max-w-xl rounded-full bg-white/[0.06]" />
+    <div role="status" aria-label={label} className="animate-pulse pt-10">
+      <div className="flex gap-5 border-y border-white/[0.07] py-3">
+        <div className="h-3 w-28 rounded-full bg-white/[0.07]" />
+        <div className="h-3 w-24 rounded-full bg-white/[0.06]" />
       </div>
-      <div className="grid gap-4 lg:grid-cols-3">
-        {[0, 1, 2].map((item) => (
-          <div key={item} className="h-64 rounded-3xl border border-white/10 bg-white/[0.035]" />
-        ))}
+      <div className="mt-8 h-80 rounded-[26px] border border-white/[0.08] bg-white/[0.035]" />
+      <div className="mt-5 grid gap-5 lg:grid-cols-2">
+        <div className="h-72 rounded-[26px] border border-white/[0.08] bg-white/[0.03]" />
+        <div className="h-72 rounded-[26px] border border-white/[0.08] bg-white/[0.03]" />
       </div>
       <span className="sr-only">{label}</span>
     </div>

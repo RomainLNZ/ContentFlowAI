@@ -1,215 +1,107 @@
-import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import {
-  ArrowRight,
-  CalendarDays,
-  Check,
-  ChevronDown,
-  CircleAlert,
-  FilePenLine,
-  Lightbulb,
-  Sparkles,
-  X,
-} from "lucide-react";
-import { useState } from "react";
-import type { DirectorRecommendation } from "../today.types";
+import { motion, useReducedMotion } from "framer-motion";
+import { ArrowUpRight, Flame, Lightbulb, Sparkles, TrendingUp, TriangleAlert, X } from "lucide-react";
+import type { DirectorCardKind, DirectorCardModel } from "../director-card.model";
 
 type Props = {
-  recommendation: DirectorRecommendation;
-  rank?: number;
-  compact?: boolean;
+  card: DirectorCardModel;
+  featured?: boolean;
   busy?: boolean;
-  onView: (recommendation: DirectorRecommendation) => void;
-  onAccept: (recommendation: DirectorRecommendation) => void;
-  onDismiss: (recommendation: DirectorRecommendation) => void;
-  onAction: (recommendation: DirectorRecommendation) => void;
+  index?: number;
+  onDismiss: (id: string) => void;
+  onAction: (card: DirectorCardModel) => void;
 };
 
-const priorityStyle = {
-  CRITICAL: "border-rose-400/30 bg-rose-400/[0.08] text-rose-200",
-  HIGH: "border-amber-400/25 bg-amber-400/[0.07] text-amber-200",
-  MEDIUM: "border-violet-400/20 bg-violet-400/[0.06] text-violet-200",
-  LOW: "border-sky-400/20 bg-sky-400/[0.05] text-sky-200",
-} as const;
+const treatments: Record<
+  DirectorCardKind,
+  { shell: string; accent: string; icon: typeof Flame; glow: string }
+> = {
+  priority: {
+    shell: "border-orange-300/20 bg-[linear-gradient(145deg,rgba(251,146,60,.105),rgba(255,255,255,.025)_46%)]",
+    accent: "text-orange-200",
+    icon: Flame,
+    glow: "bg-orange-400/20",
+  },
+  opportunity: {
+    shell: "border-emerald-300/20 bg-[linear-gradient(145deg,rgba(52,211,153,.09),rgba(255,255,255,.025)_46%)]",
+    accent: "text-emerald-200",
+    icon: TrendingUp,
+    glow: "bg-emerald-400/15",
+  },
+  attention: {
+    shell: "border-amber-300/20 bg-[linear-gradient(145deg,rgba(251,191,36,.085),rgba(255,255,255,.025)_46%)]",
+    accent: "text-amber-200",
+    icon: TriangleAlert,
+    glow: "bg-amber-300/15",
+  },
+  insight: {
+    shell: "border-violet-300/20 bg-[linear-gradient(145deg,rgba(139,92,246,.11),rgba(255,255,255,.025)_46%)]",
+    accent: "text-violet-200",
+    icon: Lightbulb,
+    glow: "bg-violet-400/20",
+  },
+};
 
-export function RecommendationCard({
-  recommendation,
-  rank,
-  compact = false,
-  busy = false,
-  onView,
-  onAccept,
-  onDismiss,
-  onAction,
-}: Props) {
-  const [expanded, setExpanded] = useState(false);
+export function RecommendationCard({ card, featured = false, busy = false, index = 0, onDismiss, onAction }: Props) {
   const reduceMotion = useReducedMotion();
-  const facts = evidenceFacts(recommendation.evidence);
-  const confidence = Math.round(Number(recommendation.confidence) * 100);
-
-  function toggle() {
-    const next = !expanded;
-    setExpanded(next);
-    if (next && recommendation.status === "NEW") onView(recommendation);
-  }
+  const treatment = treatments[card.kind];
+  const Icon = treatment.icon;
+  const { recommendation } = card;
 
   return (
     <motion.article
-      layout={!reduceMotion}
-      initial={reduceMotion ? false : { opacity: 0, y: 12 }}
+      initial={reduceMotion ? false : { opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-      className={`group relative overflow-hidden rounded-3xl border p-5 shadow-[0_18px_70px_rgba(0,0,0,.24)] backdrop-blur-xl sm:p-6 ${priorityStyle[recommendation.priority]}`}
+      transition={{ duration: 0.42, delay: reduceMotion ? 0 : index * 0.06, ease: [0.22, 1, 0.36, 1] }}
+      className={`group relative isolate flex h-full flex-col overflow-hidden rounded-[26px] border shadow-[0_24px_80px_rgba(0,0,0,.22)] transition-[transform,border-color,box-shadow] duration-500 ease-out hover:-translate-y-1 hover:border-white/20 hover:shadow-[0_30px_90px_rgba(0,0,0,.3)] ${featured ? "p-6 sm:p-8" : "p-5 sm:p-6"} ${treatment.shell}`}
     >
-      <div className="absolute inset-x-8 top-0 h-px bg-gradient-to-r from-transparent via-white/30 to-transparent" />
-      <div className="flex items-start gap-4">
-        <div className="mt-0.5 grid size-10 shrink-0 place-items-center rounded-2xl border border-white/10 bg-black/20">
-          {rank ? <span className="font-mono text-sm">0{rank}</span> : icon(recommendation.type)}
-        </div>
-        <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-center gap-2 text-xs font-medium uppercase tracking-[0.16em] opacity-75">
-            <span>{priorityLabel(recommendation.priority)}</span>
-            <span aria-hidden="true">·</span>
-            <span>{typeLabel(recommendation.type)}</span>
-            {recommendation.status === "ACCEPTED" && (
-              <span className="rounded-full bg-emerald-400/10 px-2 py-1 text-emerald-300">Acceptée</span>
-            )}
-          </div>
-          <h3
-            className={`${compact ? "mt-2 text-lg" : "mt-3 text-xl sm:text-2xl"} font-semibold tracking-[-0.02em] text-zinc-50`}
-          >
-            {recommendation.title}
-          </h3>
-          <p className="mt-2 max-w-3xl text-sm leading-6 text-zinc-300 sm:text-base">
-            {recommendation.summary}
-          </p>
-        </div>
-      </div>
+      <div className={`pointer-events-none absolute -right-16 -top-20 -z-10 size-52 rounded-full blur-3xl ${treatment.glow}`} />
+      <div className="absolute inset-x-8 top-0 h-px bg-gradient-to-r from-transparent via-white/35 to-transparent" />
 
-      <div className="mt-5 flex flex-wrap items-center gap-2 border-t border-white/10 pt-4">
-        <button
-          type="button"
-          disabled={busy}
-          onClick={() => onAction(recommendation)}
-          className="fp-focus inline-flex min-h-10 items-center gap-2 rounded-xl bg-zinc-50 px-4 text-sm font-semibold text-zinc-950 transition hover:bg-white disabled:opacity-50"
-        >
-          {actionIcon(recommendation)}
-          {actionLabel(recommendation)}
-          <ArrowRight size={15} />
-        </button>
-        {recommendation.status !== "ACCEPTED" && (
-          <button
-            type="button"
-            disabled={busy}
-            onClick={() => onAccept(recommendation)}
-            className="fp-focus inline-flex min-h-10 items-center gap-2 rounded-xl border border-white/10 bg-white/[0.05] px-3 text-sm text-zinc-200 transition hover:bg-white/10 disabled:opacity-50"
-          >
-            <Check size={15} /> Accepter
-          </button>
-        )}
-        <button
-          type="button"
-          aria-expanded={expanded}
-          onClick={toggle}
-          className="fp-focus ml-auto inline-flex min-h-10 items-center gap-2 rounded-xl px-3 text-sm text-zinc-300 hover:bg-white/[0.06]"
-        >
-          Pourquoi ?
-          <ChevronDown size={16} className={`transition-transform ${expanded ? "rotate-180" : ""}`} />
-        </button>
+      <div className="flex items-start justify-between gap-4">
+        <div className={`inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] ${treatment.accent}`}>
+          <span className="grid size-8 place-items-center rounded-xl border border-current/15 bg-black/15">
+            <Icon size={15} strokeWidth={1.8} />
+          </span>
+          {card.label}
+        </div>
         <button
           type="button"
           aria-label="Ignorer cette recommandation"
           title="Ignorer"
           disabled={busy}
-          onClick={() => onDismiss(recommendation)}
-          className="fp-focus grid size-10 place-items-center rounded-xl text-zinc-400 hover:bg-white/[0.06] hover:text-zinc-100 disabled:opacity-50"
+          onClick={() => onDismiss(recommendation.id)}
+          className="fp-focus grid size-9 shrink-0 place-items-center rounded-xl text-zinc-500 opacity-70 transition hover:bg-white/[0.06] hover:text-zinc-200 hover:opacity-100 disabled:opacity-30"
         >
-          <X size={16} />
+          <X size={15} />
         </button>
       </div>
 
-      <AnimatePresence initial={false}>
-        {expanded && (
-          <motion.div
-            initial={reduceMotion ? false : { height: 0, opacity: 0 }}
-            animate={{ height: "auto", opacity: 1 }}
-            exit={reduceMotion ? undefined : { height: 0, opacity: 0 }}
-            className="overflow-hidden"
-          >
-            <div className="mt-5 grid gap-4 border-t border-white/10 pt-5 md:grid-cols-[1fr_auto]">
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-zinc-500">
-                  Ce que le Director a observé
-                </p>
-                <ul className="mt-3 space-y-2 text-sm text-zinc-300">
-                  {(facts.length ? facts : [recommendation.rationale]).map((fact) => (
-                    <li key={fact} className="flex gap-2">
-                      <span className="mt-2 size-1.5 shrink-0 rounded-full bg-current opacity-60" />
-                      <span>{fact}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-              <div className="min-w-40 rounded-2xl border border-white/10 bg-black/15 p-4">
-                <p className="text-xs uppercase tracking-[0.14em] text-zinc-500">Confiance</p>
-                <p className="mt-2 text-2xl font-semibold text-zinc-100">{confidence}%</p>
-                <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-white/10" aria-hidden="true">
-                  <div className="h-full rounded-full bg-current" style={{ width: `${confidence}%` }} />
-                </div>
-              </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <div className={featured ? "mt-8 max-w-3xl" : "mt-6"}>
+        <h2 className={`${featured ? "text-2xl sm:text-[32px] sm:leading-[1.15]" : "text-xl sm:text-2xl"} font-semibold tracking-[-0.035em] text-zinc-50`}>
+          {recommendation.title}
+        </h2>
+        <p className={`${featured ? "mt-4 max-w-2xl text-base sm:text-lg" : "mt-3 text-sm sm:text-base"} leading-7 text-zinc-300`}>
+          {recommendation.summary}
+        </p>
+      </div>
+
+      <div className={`${featured ? "mt-8 sm:grid-cols-[1fr_auto]" : "mt-6"} mt-auto grid items-end gap-5 border-t border-white/[0.08] pt-5`}>
+        <div className="min-w-0">
+          <p className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.15em] text-zinc-500">
+            <Sparkles size={13} className="text-violet-300" /> Pourquoi maintenant
+          </p>
+          <p className="mt-2 text-sm leading-6 text-zinc-400">{recommendation.rationale}</p>
+        </div>
+        <button
+          type="button"
+          disabled={busy}
+          onClick={() => onAction(card)}
+          className="fp-focus group/action inline-flex min-h-11 shrink-0 items-center justify-center gap-2 self-start rounded-xl bg-zinc-50 px-4 text-sm font-semibold text-zinc-950 shadow-[0_8px_24px_rgba(0,0,0,.2)] transition duration-300 hover:-translate-y-0.5 hover:bg-white hover:shadow-[0_12px_30px_rgba(0,0,0,.28)] disabled:cursor-wait disabled:opacity-50 sm:self-end"
+        >
+          {card.actionLabel}
+          <ArrowUpRight size={15} className="transition-transform duration-300 group-hover/action:translate-x-0.5 group-hover/action:-translate-y-0.5" />
+        </button>
+      </div>
     </motion.article>
   );
-}
-
-function evidenceFacts(evidence: unknown): string[] {
-  if (!evidence || typeof evidence !== "object" || !("facts" in evidence)) return [];
-  const facts = (evidence as { facts?: unknown }).facts;
-  return Array.isArray(facts) ? facts.filter((fact): fact is string => typeof fact === "string") : [];
-}
-
-function priorityLabel(priority: DirectorRecommendation["priority"]) {
-  return { CRITICAL: "Urgent", HIGH: "Prioritaire", MEDIUM: "À considérer", LOW: "À explorer" }[priority];
-}
-
-function typeLabel(type: string) {
-  return (
-    (
-      {
-        EDITORIAL_GAP: "Silence éditorial",
-        CAMPAIGN_GAP: "Campagne",
-        OBJECTIVE_IMBALANCE: "Objectif",
-        CADENCE_WARNING: "Cadence",
-        WORKFLOW_BLOCKER: "Workflow",
-        BRAND_PROFILE_INCOMPLETE: "Marque",
-        CONTENT_OPPORTUNITY: "Opportunité",
-        CALENDAR_SUGGESTION: "Calendrier",
-      } as Record<string, string>
-    )[type] ?? "Director"
-  );
-}
-
-function icon(type: string) {
-  if (["EDITORIAL_GAP", "CADENCE_WARNING", "WORKFLOW_BLOCKER", "CAMPAIGN_GAP"].includes(type))
-    return <CircleAlert size={18} />;
-  if (type === "CALENDAR_SUGGESTION") return <CalendarDays size={18} />;
-  return <Lightbulb size={18} />;
-}
-
-function actionIcon(recommendation: DirectorRecommendation) {
-  if (recommendation.type === "CALENDAR_SUGGESTION") return <CalendarDays size={16} />;
-  if (["CONTENT_OPPORTUNITY", "OBJECTIVE_IMBALANCE"].includes(recommendation.type))
-    return <FilePenLine size={16} />;
-  return <Sparkles size={16} />;
-}
-
-function actionLabel(recommendation: DirectorRecommendation) {
-  if (recommendation.contentId) return "Voir le contenu";
-  if (recommendation.campaignId) return "Voir la campagne";
-  if (recommendation.type === "CALENDAR_SUGGESTION") return "Ouvrir le calendrier";
-  if (["CONTENT_OPPORTUNITY", "OBJECTIVE_IMBALANCE"].includes(recommendation.type))
-    return "Préparer un brouillon";
-  return "Traiter maintenant";
 }
